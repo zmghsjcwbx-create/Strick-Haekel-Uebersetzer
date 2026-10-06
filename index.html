@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maschen-Übersetzer</title>
+<style>
+:root{--bg:#f3f1ee;--fg:#22262b;--mut:#6b7078;--card:#fff;--line:#d9d5ce;--acc:#2f5d62;--hi:#dcebe6}
+@media(prefers-color-scheme:dark){:root{--bg:#1b1e22;--fg:#e8e6e1;--mut:#9aa0a8;--card:#24282d;--line:#3a3f46;--acc:#7fb5ad;--hi:#2d4a46}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 Georgia,"Times New Roman",serif}
+main{max-width:760px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:1.9rem;margin:0 0 4px;letter-spacing:-.01em}
+h2{font-size:1.15rem;margin:0 0 10px}
+p.sub{margin:0 0 22px;color:var(--mut)}
+section{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:18px}
+textarea,input,select{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
+textarea{min-height:130px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95rem}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+button{font:inherit;padding:8px 14px;border:1px solid var(--acc);background:var(--acc);color:var(--card);border-radius:4px;cursor:pointer}
+button.ghost{background:none;color:var(--acc)}
+select{width:auto}
+ol{margin:0;padding-left:1.6em}
+ol li{padding:4px 0;border-bottom:1px solid var(--line)}
+ol li:last-child{border:0}
+mark{background:var(--hi);color:inherit;padding:0 3px;border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:normal}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
+.hint{color:var(--mut);font-size:.9rem;margin:8px 0 0}
+.res{margin-top:12px;font-size:1.05rem}
+.hide{display:none}
+@media print{body{background:#fff;color:#000}section.noprint,.row,button{display:none}section{border:0}}
+</style>
+</head>
+<body>
+<main>
+<h1>Maschen-Übersetzer</h1>
+<p class="sub">Strick- und Häkelabkürzungen aus Englisch und Französisch ins Deutsche.</p>
+
+<section class="noprint">
+  <h2>Anleitung einfügen</h2>
+  <textarea id="in" placeholder="Row 1: k2, p2, yo, k2tog, rep to end&#10;Rang 2: 2 m ens, jeté, m.e"></textarea>
+  <div class="row">
+    <button id="go">Übersetzen</button>
+    <button class="ghost" id="ex">Beispiel</button>
+    <label style="margin:0 0 0 auto">Häkeln (dc/tr):</label>
+    <select id="mode"><option value="us">US-Begriffe</option><option value="uk">UK-Begriffe</option></select>
+  </div>
+  <p class="hint">Jede Zeile wird als eigene Reihe ausgegeben. Zahlen wie „k2“ oder „p3“ werden erkannt.</p>
+</section>
+
+<section id="outS" class="hide">
+  <h2>Deutsche Anleitung</h2>
+  <ol id="out"></ol>
+  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button></div>
+</section>
+
+<section id="glS" class="hide">
+  <h2>Glossar</h2>
+  <table><thead><tr><th>Original</th><th>Deutsch</th><th>Bedeutung</th></tr></thead><tbody id="gl"></tbody></table>
+</section>
+
+<section class="noprint">
+  <h2>Größenumrechnung</h2>
+  <div class="grid">
+    <div><label>Anleitung: M / 10 cm</label><input id="gm" type="number" min="1" step="any"></div>
+    <div><label>Anleitung: R / 10 cm</label><input id="gr" type="number" min="1" step="any"></div>
+    <div><label>Meine Probe: M / 10 cm</label><input id="mm" type="number" min="1" step="any"></div>
+    <div><label>Meine Probe: R / 10 cm</label><input id="mr" type="number" min="1" step="any"></div>
+  </div>
+  <div class="grid" style="margin-top:10px">
+    <div><label>Maschenzahl laut Anleitung</label><input id="nm" type="number" min="1"></div>
+    <div><label>Reihenzahl laut Anleitung</label><input id="nr" type="number" min="1"></div>
+  </div>
+  <div class="res" id="sz"></div>
+  <p class="hint">Rechnet Anleitungswerte auf deine Maschenprobe um. Bei Mustersätzen bitte auf den Rapport runden.</p>
+</section>
+</main>
+
+<script>
+// [Muster (Regex), Deutsch (Text oder Funktion), Glossar-Name, Bedeutung, Art, Modus]
+const N=(m,t)=>m[1]?m[1]+" "+t:t;
+const D=[
+// Stricken EN
+["k(\\d*)tbl",m=>N(m,"M re verschränkt"),"k1tbl","Rechte Masche im hinteren Maschenglied"],
+["p(\\d*)tbl",m=>N(m,"M li verschränkt"),"p1tbl","Linke Masche im hinteren Maschenglied"],
+["k(\\d*)tog",m=>(m[1]||2)+" M re zusammenstr.","k2tog","Maschen rechts zusammenstricken (Abnahme)"],
+["p(\\d*)tog",m=>(m[1]||2)+" M li zusammenstr.","p2tog","Maschen links zusammenstricken (Abnahme)"],
+["ssk","1 M abheben, 1 M re, abgehobene M überziehen","ssk","Linksneigende Abnahme"],
+["sl ?1|sl","M abheben","sl","Masche abheben, ohne sie zu stricken"],
+["psso","überziehen","psso","Abgehobene Masche über die gestrickte ziehen"],
+["yo|yfwd","U","yo","Umschlag"],
+["kfb|k1f&b","1 M re aus Vorder- und Rückglied","kfb","Zunahme: in dieselbe Masche vorn und hinten einstechen"],
+["m1l","1 M aus dem Querfaden aufnehmen (links verschränkt)","m1l","Linksneigende Zunahme"],
+["m1r","1 M aus dem Querfaden aufnehmen (rechts verschränkt)","m1r","Rechtsneigende Zunahme"],
+["m1","1 M aus dem Querfaden aufnehmen","m1","Zunahme aus dem Querfaden"],
+["cast on|co","anschlagen","co","Maschen anschlagen"],
+["bind off|cast off|bo","abketten","bo","Maschen abketten"],
+["stockinette stitch|stockinette|st st|stst","glatt rechts","st st","Rechts auf Hinreihe, links auf Rückreihe"],
+["garter stitch|garter st|garter","kraus rechts","garter","Alle Reihen rechts"],
+["rs|right side","Hinr. (rechte Seite)","rs","Rechte Seite der Arbeit"],
+["ws|wrong side","Rückr. (linke Seite)","ws","Linke Seite der Arbeit"],
+["rnds?|rounds?","Rd","rnd","Runde"],
+["rows?","R","row","Reihe"],
+["repeat|rep","wiederholen","rep","Wiederholen"],
+["inc","zunehmen","inc","Zunahme"],
+["dec","abnehmen","dec","Abnahme"],
+["beg","Beginn","beg","Beginn / beginnen"],
+["pm|place marker","Markierer setzen","pm","Maschenmarkierer setzen"],
+["sm","Markierer umhängen","sm","Maschenmarkierer von Nadel zu Nadel heben"],
+["cn","Zopfnadel","cn","Zopfnadel (Hilfsnadel)"],
+["wyif","Faden vor die Arbeit","wyif","Faden vor der Arbeit"],
+["wyib","Faden hinter die Arbeit","wyib","Faden hinter der Arbeit"],
+["sts?","M","st","Masche(n)"],
+// Stricken FR
+["(\\d+) ?m\\.? ?ens(?:emble)?",m=>m[1]+" M re zusammenstr.","2 m ens","Maschen zusammenstricken (Abnahme)"],
+["surjet simple|sjs","1 M abheben, 1 M re, abgehobene M überziehen","sjs","Linksneigende Abnahme"],
+["jeté|jete|jt","U","jeté","Umschlag"],
+["m\\.? ?end\\.?|à l'endroit|end\\.","re","m.e / end.","Rechte Masche"],
+["m\\.? ?env\\.?|à l'envers|env\\.","li","m.env / env.","Linke Masche"],
+["rabattre|rab\\.?|rabat","abketten","rab.","Maschen abketten"],
+["monter|montage","anschlagen","monter","Maschen anschlagen"],
+["point mousse","kraus rechts","point mousse","Alle Reihen rechts"],
+["jersey","glatt rechts","jersey","Rechts auf Hinreihe, links auf Rückreihe"],
+["rangs?|rg","R","rang","Reihe"],
+["tours?","Rd","tour","Runde"],
+["aug\\.?","zunehmen","aug.","Zunahme"],
+["dim\\.?","abnehmen","dim.","Abnahme"],
+["glisser|gl","abheben","glisser","Masche abheben"],
+["mailles?","M","maille","Masche(n)"],
+// Häkeln
+["ch|ml|maille en l'air","Lm","ch / ml","Luftmasche"],
+["sl st|ss|mc|maille coulée","Km","sl st / mc","Kettmasche"],
+["sc|ms|maille serrée","fM","sc / ms","Feste Masche"],
+["hdc|htr|mi-bride|demi-bride","hStb","hdc / htr","Halbes Stäbchen",null,"all"],
+["dtr","DStb","dtr (UK)","Doppelstäbchen","uk"],
+["dtr","3fStb","dtr (US)","Dreifaches Stäbchen","us"],
+["dc","fM","dc (UK)","Feste Masche","uk"],
+["dc","Stb","dc (US)","Stäbchen","us"],
+["tr","Stb","tr (UK)","Stäbchen","uk"],
+["tr","DStb","tr (US)","Doppelstäbchen","us"],
+["db|double bride","DStb","db","Doppelstäbchen"],
+["bride","Stb","bride","Stäbchen"],
+["magic ring|magic circle|mr|anneau magique|cercle magique","Fadenring","mr","Magic Ring / Fadenring"],
+["blo","nur hinteres Maschenglied","blo","Nur ins hintere Maschenglied einstechen"],
+["flo","nur vorderes Maschenglied","flo","Nur ins vordere Maschenglied einstechen"],
+["turn","wenden","turn","Arbeit wenden"],
+["fasten off|fo","Faden abschneiden und durchziehen","fo","Arbeit beenden"],
+["skip|sk","überspringen","skip","Masche(n) überspringen"],
+// Allgemein, zuletzt
+["k(\\d+)",m=>m[1]+" re","k2","Rechte Maschen (Zahl = Anzahl)"],
+["p(\\d+)",m=>m[1]+" li","p2","Linke Maschen (Zahl = Anzahl)"],
+["k","re","k","Rechte Masche"],
+["p","li","p","Linke Masche"],
+["m","M","m","Masche(n)"],
+].map(([p,d,g,e,u])=>({re:new RegExp("(?:"+p+")(?![\\p{L}\\d])","iuy"),d,g,e,u}));
+
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const isW=c=>/[\p{L}\d]/u.test(c||"");
+
+function tr(text,mode,used){
+  let o="",i=0;
+  while(i<text.length){
+    let hit=null;
+    if(!isW(text[i-1])&&isW(text[i])){
+      for(const e of D){
+        if(e.u&&e.u!==mode)continue;
+        e.re.lastIndex=i;
+        const m=e.re.exec(text);
+        if(m){hit={e,m};break}
+      }
+    }
+    if(hit){
+      const de=typeof hit.e.d==="function"?hit.e.d(hit.m):hit.e.d;
+      o+="<mark>"+esc(de)+"</mark>";
+      if(!used.has(hit.e.g))used.set(hit.e.g,{orig:hit.m[0],de:typeof hit.e.d==="function"?de:hit.e.d,e:hit.e.e});
+      i+=hit.m[0].length;
+    }else{o+=esc(text[i]);i++}
+  }
+  return o;
+}
+
+function run(){
+  const used=new Map(),mode=$("mode").value;
+  const lines=$("in").value.split("\n").filter(l=>l.trim());
+  $("out").innerHTML=lines.map(l=>"<li>"+tr(l,mode,used)+"</li>").join("");
+  $("outS").classList.toggle("hide",!lines.length);
+  $("glS").classList.toggle("hide",!used.size);
+  $("gl").innerHTML=[...used].map(([g,v])=>`<tr><td>${esc(v.orig)}</td><td>${esc(v.de)}</td><td>${esc(v.e)}</td></tr>`).join("");
+}
+
+$("go").onclick=run;
+$("mode").onchange=run;
+$("ex").onclick=()=>{$("in").value="Row 1 (RS): k2, p2, yo, k2tog, sl1, k1, psso\nRnd 2: kfb, k3, ssk, rep to end\nRang 3: 2 m ens, jeté, m.e, m.env\nRnd 1: ch 4, sl st in first ch, 8 dc in ring";run()};
+$("cp").onclick=async e=>{
+  const t=[...$("out").children].map((li,i)=>(i+1)+". "+li.textContent).join("\n");
+  try{await navigator.clipboard.writeText(t);e.target.textContent="Kopiert"}catch{e.target.textContent="Nicht möglich"}
+  setTimeout(()=>e.target.textContent="Kopieren",1500);
+};
+$("pr").onclick=()=>print();
+
+function size(){
+  const v=id=>parseFloat($(id).value),f=(a,b,n)=>a>0&&b>0&&n>0?Math.round(n*b/a):null;
+  const m=f(v("gm"),v("mm"),v("nm")),r=f(v("gr"),v("mr"),v("nr")),p=[];
+  if(m)p.push(`<b>${m}</b> Maschen (statt ${v("nm")})`);
+  if(r)p.push(`<b>${r}</b> Reihen (statt ${v("nr")})`);
+  $("sz").innerHTML=p.join(" · ");
+}
+["gm","gr","mm","mr","nm","nr"].forEach(id=>$(id).oninput=size);
+</script>
+</body>
+</html>
