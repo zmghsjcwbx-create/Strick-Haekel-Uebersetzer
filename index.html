@@ -14,7 +14,8 @@
 :root{color-scheme:light;--fg:#3b3340;--mut:#85798a;--line:#f0dde3;--acc:#b0476a;--lav:#e6dcf5;--lavd:#5f4392;--sage:#d9ece1;--sagd:#2f6b4d;--peach:#fde8dc}
 *{box-sizing:border-box}
 body{margin:0;color:var(--fg);font:16px/1.6 Nunito,"Segoe UI",system-ui,sans-serif;background:linear-gradient(160deg,#fff1ee 0%,#f5eefb 55%,#e9f5ee 100%) fixed;min-height:100vh}
-main{max-width:780px;margin:0 auto;padding:26px 16px 40px}
+main{max-width:780px;margin:0 auto;padding:26px 16px 40px;display:flex;flex-direction:column}
+header{order:-9}.quote{order:-8}#outS{order:-6}#inS{order:-5}#cntS{order:-4}#glS{order:-3}
 header{display:flex;gap:16px;align-items:center;justify-content:space-between}
 .hdr-art{display:flex;align-items:center;flex-shrink:0}
 h1{font:600 2.1rem/1.15 Fraunces,Georgia,serif;margin:0;color:#7a2f4d}
@@ -23,7 +24,7 @@ p.sub{margin:2px 0 0;color:var(--mut)}
 .stitches{height:16px;margin:16px 0 20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='16'%3E%3Cpath d='M1 2l6 11 6-11' fill='none' stroke='%23eab4c6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") repeat-x center}
 h2{font:600 1.2rem Fraunces,Georgia,serif;margin:0 0 12px;color:#7a2f4d}
 section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 6px 20px rgba(176,71,106,.07)}
-textarea,input[type=number],select{width:100%;font:inherit;padding:11px 12px;border:2px solid #ecd7de;border-radius:12px;background:#fffdfc;color:var(--fg)}
+textarea,input[type=number],input[type=search],select{width:100%;font:inherit;padding:11px 12px;border:2px solid #ecd7de;border-radius:12px;background:#fffdfc;color:var(--fg)}
 textarea{min-height:140px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.98rem}
 textarea:focus,input:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(176,71,106,.15)}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
@@ -59,6 +60,21 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
 .cnt small{color:var(--mut)}
 ol li.cur{background:#fff6f8;border-radius:12px;box-shadow:inset 4px 0 0 var(--acc)}
 summary{cursor:pointer}
+.quote{margin:0 0 6px;padding:14px 18px 12px 54px;background:linear-gradient(120deg,#fff7f9,#f7f1fc);border-radius:18px;border:1px solid var(--line);position:relative}
+.quote::before{content:"„";position:absolute;left:14px;top:-2px;font:600 4rem/1 Fraunces,Georgia,serif;color:#e9a9bf}
+.quote blockquote{margin:0;font:italic 1.05rem/1.55 Fraunces,Georgia,serif;color:#5a3550}
+.quote figcaption{margin-top:6px;font-size:.85rem;color:var(--mut)}
+section>details>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+section>details>summary::-webkit-details-marker{display:none}
+section>details>summary::after{content:"▾";color:var(--acc);font-size:1.2rem;transition:transform .2s}
+section>details:not([open])>summary::after{transform:rotate(-90deg)}
+section>details[open]>summary{margin-bottom:12px}
+section>details>summary h2{margin:0}
+.tg.on{background:var(--acc);color:#fff}
+input[type=search]{flex:1;min-width:140px;width:auto;border-radius:999px}
+.gwrap{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+.gwrap th{position:sticky;top:0;border-radius:0}
+.sentS>details>summary h2::after{content:"  ✓ gesendet, danke!";font:800 .85rem Nunito,sans-serif;color:var(--sagd)}
 </style>
 </head>
 <body>
@@ -74,9 +90,10 @@ summary{cursor:pointer}
     <svg viewBox="0 0 84 80" width="84" height="80"><circle cx="38" cy="40" r="28" fill="#f7c6d4"/><g fill="none" stroke="#e08fa8" stroke-width="2" stroke-linecap="round"><path d="M14 32c14 8 36 8 50-4"/><path d="M12 44c16 8 38 8 52-6"/><path d="M18 58c14 6 30 4 42-8"/><path d="M26 16c-4 16 0 36 14 50"/><path d="M42 12c-6 14-4 38 10 52"/><path d="M62 62c8 6 14 2 18-6" stroke-width="2.5"/></g></svg>
   </div>
 </header>
-<div class="stitches deco"></div>
+<figure class="quote" id="qt"></figure>
+<div class="stitches deco" style="order:-7"></div>
 
-<section class="noprint">
+<section class="noprint" id="inS">
   <h2>🧶 Anleitung einfügen</h2>
   <textarea id="in" placeholder="Row 1 (RS): k2, p2, yo, k2tog, rep from * to end&#10;Rang 2: 2 m ens, jeté, m.e jusqu'à la fin"></textarea>
   <div class="row">
@@ -118,12 +135,18 @@ summary{cursor:pointer}
   <div class="row" style="justify-content:center"><button class="ghost" id="cz">Auf 0 setzen</button></div>
 </section>
 
-<section id="glS" class="hide">
+<section id="glS">
   <h2>📖 Glossar</h2>
-  <table><thead><tr><th>Original</th><th>Deutsch</th><th>Bedeutung</th></tr></thead><tbody id="gl"></tbody></table>
+  <div class="row" style="margin-top:0">
+    <button class="ghost tg on" id="gc">Diese Übersetzung</button><button class="ghost tg" id="ga">Gesamtglossar</button>
+    <input type="search" id="gq" placeholder="Suchen …" aria-label="Glossar durchsuchen">
+    <select id="gl2" class="hide" aria-label="Sprache filtern"><option value="">Alle Sprachen</option><option value="EN">Englisch</option><option value="FR">Französisch</option></select>
+  </div>
+  <div class="gwrap" style="margin-top:10px"><table><thead><tr><th>Original</th><th>Deutsch</th><th>Bedeutung</th></tr></thead><tbody id="gl"></tbody></table></div>
+  <p class="hint" id="gn"></p>
 </section>
 
-<section class="noprint">
+<section class="noprint" id="szS">
   <h2>📏 Größenumrechnung</h2>
   <div class="grid">
     <div><label>Anleitung: M / 10 cm</label><input id="gm" type="number" min="1" step="any"></div>
@@ -138,18 +161,24 @@ summary{cursor:pointer}
   <div class="res" id="sz"></div>
   <p class="hint">Rechnet Anleitungswerte auf deine Maschenprobe um. Bei Mustersätzen bitte auf den Rapport runden.</p>
 </section>
-<section class="noprint">
+<section class="noprint" id="ndS">
   <h2>🧵 Nadelstärken</h2>
   <div class="row" style="margin-top:0"><label style="margin:0">Ich habe:</label><select id="ns"></select></div>
   <div class="res" id="nres"></div>
   <details><summary class="hint">Ganze Tabelle (Stricknadeln)</summary><table id="nt"></table></details>
 </section>
-<div class="stitches deco"></div>
-<footer id="ver"></footer>
+<section class="noprint" id="wsS">
+  <h2>💡 Feature wünschen</h2>
+  <textarea id="wc" style="min-height:90px;font-family:inherit" placeholder="Was soll die Seite noch können?"></textarea>
+  <div class="row"><button id="ws">Wunsch senden</button><button class="ghost" id="wi">Als GitHub-Issue</button><span id="wst" class="hint"></span></div>
+</section>
+<div class="stitches deco" style="order:98"></div>
+<footer id="ver" style="order:99"></footer>
 </main>
 
 <script>
-const NAME="Kerstin",VERSION="4.0",STAND="07.10.2026";
+const NAME="Kerstin",VERSION="4.1",STAND="07.10.2026";
+let lastUsed=new Map();
 // [Muster, Deutsch (Text oder fn(m,lang)), Glossar-Name, Bedeutung, Tag: en|fr|us|uk|leer=alle]
 const HK={us:{sc:"fM",hdc:"hStb",dc:"Stb",tr:"DStb"},uk:{dc:"fM",htr:"hStb",tr:"Stb"}};
 const V=[
@@ -404,8 +433,7 @@ function run(){
   const lines=raw.split("\n").filter(l=>l.trim());
   lines.forEach(l=>out.appendChild(row(l,lang,used)));
   $("outS").classList.toggle("hide",!lines.length);
-  $("glS").classList.toggle("hide",!used.size);updCur();save();
-  $("gl").innerHTML=[...used].map(([g,v])=>`<tr><td>${esc(v.orig)}</td><td>${esc(v.de)}</td><td>${esc(v.e)}</td></tr>`).join("");
+  updCur();save();lastUsed=used;renderGl();
 }
 
 const EXS=[
@@ -413,7 +441,7 @@ const EXS=[
 "Rang 1 (endroit): 2 m.e, 2 m.env, jeté, 2 m ens, répéter de * jusqu'à la fin\nRang 2: m.e jusqu'à 3 m de la fin, 3 m.env\nTour 3: monter 24 m, fermer en rond",
 "Rnd 1: ch 4, sl st to join, 8 dc in ring\nRnd 2: ch 1, 2 sc in each st around, sl st to first sc\nFasten off, weave in ends"];
 let ei=0;
-$("go").onclick=run;
+$("go").onclick=()=>{run();$("outS").querySelector("details").open=true;$("outS").scrollIntoView({behavior:"smooth",block:"start"})};
 $("mode").onchange=run;
 $("ex").onclick=()=>{$("in").value=EXS[ei++%EXS.length];run()};
 $("cp").onclick=async e=>{
@@ -467,7 +495,7 @@ $("pf").onchange=async e=>{
     const r=await Tesseract.recognize(f,"eng+fra",{logger:m=>{if(m.status==="recognizing text")o.textContent=`Erkenne Text … ${Math.round(m.progress*100)} %`}});
     $("in").value=r.data.text.replace(/\n{2,}/g,"\n").trim();
     o.textContent="Text erkannt. Bitte kurz auf Erkennungsfehler prüfen. Das Foto bleibt auf deinem Gerät.";
-    run();
+    run();$("outS").scrollIntoView({behavior:"smooth"});
   }catch{o.textContent="Texterkennung fehlgeschlagen. Bitte tippe den Text ab oder probiere ein schärferes Foto."}
   e.target.value="";
 };
@@ -479,6 +507,66 @@ $("ns").innerHTML=`<optgroup label="Millimeter">${opt(r=>r[0],r=>fm(r[0])+" mm")
 $("ns").onchange=()=>{const r=NT[$("ns").value];$("nres").innerHTML=`<b>${fm(r[0])} mm</b> = US ${r[1]} = UK ${r[2]}`};
 $("ns").onchange();
 $("nt").innerHTML="<tr><th>mm</th><th>US</th><th>UK</th></tr>"+NT.map(r=>`<tr><td>${fm(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
+// Glossar
+const ALL=(()=>{const seen=new Set(),o=[];
+  for(const e of V){const k=e.g+"|"+(e.t||"");if(seen.has(k))continue;seen.add(k);
+    let de=e.d;
+    if(typeof de==="function"){e.re.lastIndex=0;const m=e.re.exec(e.g)||[e.g,"n","n","n"];de=e.d(m,e.t==="uk"?"uk":"us")}
+    o.push({orig:e.g,de,e:e.e,l:e.t==="fr"?"FR":e.t==="uk"?"UK":e.t==="us"?"US":"EN"})}
+  return o.sort((a,b)=>a.orig.localeCompare(b.orig,"de"))})();
+let gm="c";
+function renderGl(){
+  const q=$("gq").value.trim().toLowerCase(),lf=$("gl2").value;
+  let rows=gm==="c"?[...lastUsed].map(([g,v])=>({orig:v.orig,de:v.de,e:v.e})):ALL.filter(r=>!lf||(lf==="FR")===(r.l==="FR"));
+  if(q)rows=rows.filter(r=>(r.orig+" "+r.de+" "+r.e).toLowerCase().includes(q));
+  $("gl").innerHTML=rows.map(r=>`<tr><td>${esc(r.orig)}${gm==="a"?` <small style="color:var(--mut)">${r.l}</small>`:""}</td><td>${esc(r.de)}</td><td>${esc(r.e)}</td></tr>`).join("");
+  $("gn").textContent=gm==="c"&&!lastUsed.size?"Noch keine Übersetzung. Unter „Gesamtglossar“ findest du alle Begriffe.":`${rows.length} Einträge`;
+}
+function setG(m){gm=m;$("gc").classList.toggle("on",m==="c");$("ga").classList.toggle("on",m==="a");$("gl2").classList.toggle("hide",m==="c");renderGl()}
+$("gc").onclick=()=>setG("c");$("ga").onclick=()=>setG("a");$("gq").oninput=renderGl;$("gl2").onchange=renderGl;
+renderGl();
+
+// Wünsche
+$("wi").classList.toggle("hide",!SLUG);
+$("ws").onclick=async()=>{
+  const t=$("wc").value.trim();
+  if(!t){$("wst").textContent="Bitte kurz beschreiben, was du dir wünschst.";return}
+  try{
+    const r=await fetch("https://ntfy.sh/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:NTFY,title:"Maschen-Uebersetzer: Feature-Wunsch",tags:["bulb"],message:`${t.slice(0,1500)}\n\nv${VERSION}`})});
+    if(!r.ok)throw 0;
+    $("wc").value="";$("wst").textContent="";$("wsS").classList.add("sentS");$("wsS").querySelector("details").open=false;
+  }catch{$("wst").textContent="Senden fehlgeschlagen. Bitte die GitHub-Variante nutzen."}
+};
+$("wi").onclick=()=>open(`https://github.com/${SLUG}/issues/new?labels=enhancement&title=${encodeURIComponent("Feature-Wunsch")}&body=${encodeURIComponent($("wc").value+"\n\nv"+VERSION)}`,"_blank");
+
+// Zitat des Tages
+const Q=[
+["Wie alles sich zum Ganzen webt, / Eins in dem andern wirkt und lebt!","Johann Wolfgang von Goethe","Faust. Der Tragödie erster Teil (1808), „Nacht“"],
+["Wo ein Tritt tausend Fäden regt, / Die Schifflein herüber hinüber schießen, / Die Fäden ungesehen fließen, / Ein Schlag tausend Verbindungen schlägt.","Johann Wolfgang von Goethe","Faust. Der Tragödie erster Teil (1808), „Studierzimmer“"],
+["Von der Stirne heiß / Rinnen muss der Schweiß, / Soll das Werk den Meister loben.","Friedrich Schiller","Das Lied von der Glocke (1799)"],
+["Der Mensch spielt nur, wo er in voller Bedeutung des Wortes Mensch ist, und er ist nur da ganz Mensch, wo er spielt.","Friedrich Schiller","Über die ästhetische Erziehung des Menschen (1795), 15. Brief"],
+["Und jedem Anfang wohnt ein Zauber inne, / Der uns beschützt und der uns hilft, zu leben.","Hermann Hesse","„Stufen“ (1941)"],
+["Ich lebe mein Leben in wachsenden Ringen, / die sich über die Dinge ziehn.","Rainer Maria Rilke","Das Stunden-Buch (1905), Das Buch vom mönchischen Leben"],
+["Schläft ein Lied in allen Dingen, / Die da träumen fort und fort, / Und die Welt hebt an zu singen, / Triffst du nur das Zauberwort.","Joseph von Eichendorff","„Wünschelrute“ (1835)"],
+["Grau, teurer Freund, ist alle Theorie, / Und grün des Lebens goldner Baum.","Johann Wolfgang von Goethe","Faust. Der Tragödie erster Teil (1808), „Studierzimmer“"],
+["Kunst gibt nicht das Sichtbare wieder, sondern macht sichtbar.","Paul Klee","Schöpferische Konfession (1920)"],
+["Jeder Mensch ist ein Künstler.","Joseph Beuys","Leitsatz seit den 1970er Jahren"],
+["… Geduld zu haben gegen alles Ungelöste in Ihrem Herzen.","Rainer Maria Rilke","Briefe an einen jungen Dichter (1929)"],
+["Denn wahrhaftig steckt die Kunst in der Natur, wer sie heraus kann reißen, der hat sie.","Albrecht Dürer","Vier Bücher von menschlicher Proportion (1528)"],
+["Zufrieden jauchzet groß und klein: / Hier bin ich Mensch, hier darf ich's sein!","Johann Wolfgang von Goethe","Faust. Der Tragödie erster Teil (1808), „Vor dem Tor“"],
+["Der Mond ist aufgegangen, / Die goldnen Sternlein prangen / Am Himmel hell und klar.","Matthias Claudius","„Abendlied“ (1779)"]];
+{const n=new Date(),q=Q[Math.floor((n-new Date(n.getFullYear(),0,0))/864e5)%Q.length];
+ $("qt").innerHTML=`<blockquote>${esc(q[0]).replace(/ \/ /g,"<br>")}</blockquote><figcaption>— ${esc(q[1])}, <cite>${esc(q[2])}</cite></figcaption>`}
+
+// Einklappbare Boxen (Zustand wird gemerkt)
+{const OPEN={inS:1,outS:1,cntS:1,glS:1},UI=(()=>{try{return JSON.parse(localStorage.getItem(KEY+"ui")||"{}")}catch{return{}}})();
+ document.querySelectorAll("main>section").forEach(sec=>{
+  const h=sec.querySelector("h2"),d=document.createElement("details"),sm=document.createElement("summary"),kids=[...sec.childNodes];
+  sm.appendChild(h);d.appendChild(sm);kids.forEach(k=>{if(k!==h)d.appendChild(k)});sec.appendChild(d);
+  d.open=sec.id in UI?UI[sec.id]:!!OPEN[sec.id];
+  d.ontoggle=()=>{UI[sec.id]=d.open;try{localStorage.setItem(KEY+"ui",JSON.stringify(UI))}catch{}};
+ })}
 
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 try{
