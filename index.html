@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Maschen-Übersetzer</title>
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#f7c6d4">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
@@ -50,6 +53,12 @@ label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
 footer{text-align:center;color:var(--mut);font-size:.85rem}
 @media(max-width:520px){header{flex-direction:column-reverse;align-items:flex-start}h1{font-size:1.7rem}}
 @media print{body{background:#fff}.noprint,.row,button,.deco,footer{display:none!important}section{border:0;box-shadow:none}}
+.big{width:56px;height:56px;font-size:1.8rem;padding:0;line-height:1}
+.cnt{text-align:center;min-width:120px}
+#cv{display:block;font:600 2.8rem/1 Fraunces,Georgia,serif;color:#7a2f4d}
+.cnt small{color:var(--mut)}
+ol li.cur{background:#fff6f8;border-radius:12px;box-shadow:inset 4px 0 0 var(--acc)}
+summary{cursor:pointer}
 </style>
 </head>
 <body>
@@ -73,6 +82,7 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
   <div class="row">
     <button id="go">Übersetzen</button>
     <button class="ghost" id="ex">Beispiel</button>
+    <button class="ghost" id="ph">📷 Foto</button><input type="file" id="pf" accept="image/*" class="hide">
     <label style="margin:0 0 0 auto">Sprache:</label>
     <select id="mode">
       <option value="auto">Automatisch erkennen</option>
@@ -81,6 +91,7 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
       <option value="fr">Französisch</option>
     </select>
   </div>
+  <p class="hint" id="ocr"></p>
   <p class="hint" id="det">Die Sprache wird automatisch erkannt. Das Dropdown ist nur für Fälle, in denen die Erkennung danebenliegt.</p>
 </section>
 
@@ -88,13 +99,23 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
   <h2>🪡 Deutsche Anleitung</h2>
   <ol id="out"></ol>
   <p class="hint noprint">Haken setzen = Reihe erledigt. Gestrichelt unterstrichen = nicht erkannt.</p>
-  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button><button class="ghost" id="rb">Fehler melden</button></div>
+  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button><button class="ghost" id="rk">Haken zurücksetzen</button><button class="ghost" id="rb">Fehler melden</button></div>
   <div id="repS" class="hide noprint" style="margin-top:12px">
     <label>Was ist falsch oder was hättest du erwartet?</label>
     <textarea id="rc" style="min-height:70px;font-family:inherit"></textarea>
     <div class="row"><button id="rs">Senden</button><button class="ghost" id="ri">Als GitHub-Issue</button><span id="rst" class="hint"></span></div>
     <p class="hint">Gesendet werden Eingabe, Ausgabe und dein Kommentar, keine persönlichen Daten.</p>
   </div>
+</section>
+
+<section class="noprint" id="cntS">
+  <h2>🔢 Reihenzähler</h2>
+  <div class="row" style="justify-content:center;margin:0">
+    <button class="ghost big" id="cm" aria-label="Eine Reihe zurück">−</button>
+    <div class="cnt"><span id="cv">0</span><small>Reihe / Runde</small></div>
+    <button class="big" id="cplus" aria-label="Eine Reihe weiter">+</button>
+  </div>
+  <div class="row" style="justify-content:center"><button class="ghost" id="cz">Auf 0 setzen</button></div>
 </section>
 
 <section id="glS" class="hide">
@@ -117,12 +138,18 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
   <div class="res" id="sz"></div>
   <p class="hint">Rechnet Anleitungswerte auf deine Maschenprobe um. Bei Mustersätzen bitte auf den Rapport runden.</p>
 </section>
+<section class="noprint">
+  <h2>🧵 Nadelstärken</h2>
+  <div class="row" style="margin-top:0"><label style="margin:0">Ich habe:</label><select id="ns"></select></div>
+  <div class="res" id="nres"></div>
+  <details><summary class="hint">Ganze Tabelle (Stricknadeln)</summary><table id="nt"></table></details>
+</section>
 <div class="stitches deco"></div>
 <footer id="ver"></footer>
 </main>
 
 <script>
-const NAME="Kerstin",VERSION="3.0",STAND="07.10.2026";
+const NAME="Kerstin",VERSION="4.0",STAND="07.10.2026";
 // [Muster, Deutsch (Text oder fn(m,lang)), Glossar-Name, Bedeutung, Tag: en|fr|us|uk|leer=alle]
 const HK={us:{sc:"fM",hdc:"hStb",dc:"Stb",tr:"DStb"},uk:{dc:"fM",htr:"hStb",tr:"Stb"}};
 const V=[
@@ -358,7 +385,7 @@ function row(line,lang,used){
   const li=document.createElement("li");
   if(!lb)li.className="nolb";
   li.innerHTML=`<input type="checkbox" aria-label="erledigt">${lb?`<span class="lb">${lb}</span>`:""}<span class="st">${tr(rest.trim(),lang,used)}</span>`;
-  li.firstChild.onchange=e=>li.classList.toggle("done",e.target.checked);
+  li.firstChild.onchange=e=>{li.classList.toggle("done",e.target.checked);updCur();save()};
   return li;
 }
 
@@ -377,7 +404,7 @@ function run(){
   const lines=raw.split("\n").filter(l=>l.trim());
   lines.forEach(l=>out.appendChild(row(l,lang,used)));
   $("outS").classList.toggle("hide",!lines.length);
-  $("glS").classList.toggle("hide",!used.size);
+  $("glS").classList.toggle("hide",!used.size);updCur();save();
   $("gl").innerHTML=[...used].map(([g,v])=>`<tr><td>${esc(v.orig)}</td><td>${esc(v.de)}</td><td>${esc(v.e)}</td></tr>`).join("");
 }
 
@@ -421,6 +448,47 @@ $("rs").onclick=async e=>{
   }catch{$("rst").textContent="Senden fehlgeschlagen. Bitte die GitHub-Variante nutzen."}
 };
 $("ri").onclick=()=>{open(`https://github.com/${SLUG}/issues/new?title=${encodeURIComponent("Übersetzungsfehler")}&body=${encodeURIComponent(report())}`,"_blank");sent()};
+
+// ---- Speichern, Zähler, Foto, Nadeln, App ----
+const KEY="maschen4";let zc=0;
+function save(){try{localStorage.setItem(KEY,JSON.stringify({t:$("in").value,c:zc,d:[...$("out").children].map(li=>+li.classList.contains("done"))}))}catch{}}
+function updCur(){const L=[...$("out").children];L.forEach(li=>li.classList.remove("cur"));const f=L.find(li=>!li.classList.contains("done"));if(f)f.classList.add("cur")}
+function setC(n){zc=Math.max(0,n);$("cv").textContent=zc;save()}
+$("cplus").onclick=()=>setC(zc+1);$("cm").onclick=()=>setC(zc-1);$("cz").onclick=()=>setC(0);
+$("rk").onclick=()=>{[...$("out").children].forEach(li=>{li.classList.remove("done");li.firstChild.checked=false});updCur();save()};
+$("in").oninput=save;
+
+$("ph").onclick=()=>$("pf").click();
+$("pf").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const o=$("ocr");o.textContent="Lade Texterkennung …";
+  try{
+    if(!window.Tesseract)await new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+    const r=await Tesseract.recognize(f,"eng+fra",{logger:m=>{if(m.status==="recognizing text")o.textContent=`Erkenne Text … ${Math.round(m.progress*100)} %`}});
+    $("in").value=r.data.text.replace(/\n{2,}/g,"\n").trim();
+    o.textContent="Text erkannt. Bitte kurz auf Erkennungsfehler prüfen. Das Foto bleibt auf deinem Gerät.";
+    run();
+  }catch{o.textContent="Texterkennung fehlgeschlagen. Bitte tippe den Text ab oder probiere ein schärferes Foto."}
+  e.target.value="";
+};
+
+const NT=[[2,"0","14"],[2.25,"1","13"],[2.75,"2","12"],[3,"–","11"],[3.25,"3","10"],[3.5,"4","–"],[3.75,"5","9"],[4,"6","8"],[4.5,"7","7"],[5,"8","6"],[5.5,"9","5"],[6,"10","4"],[6.5,"10½","3"],[7,"–","2"],[7.5,"–","1"],[8,"11","0"],[9,"13","00"],[10,"15","000"]];
+const fm=n=>String(n).replace(".",",");
+const opt=(f,x)=>NT.map((r,i)=>f(r)==="–"?"":`<option value="${i}">${x(r)}</option>`).join("");
+$("ns").innerHTML=`<optgroup label="Millimeter">${opt(r=>r[0],r=>fm(r[0])+" mm")}</optgroup><optgroup label="US">${opt(r=>r[1],r=>"US "+r[1])}</optgroup><optgroup label="UK">${opt(r=>r[2],r=>"UK "+r[2])}</optgroup>`;
+$("ns").onchange=()=>{const r=NT[$("ns").value];$("nres").innerHTML=`<b>${fm(r[0])} mm</b> = US ${r[1]} = UK ${r[2]}`};
+$("ns").onchange();
+$("nt").innerHTML="<tr><th>mm</th><th>US</th><th>UK</th></tr>"+NT.map(r=>`<tr><td>${fm(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+try{
+  const S=JSON.parse(localStorage.getItem(KEY)||"null");
+  if(S&&S.t){
+    $("in").value=S.t;zc=S.c||0;$("cv").textContent=zc;run();
+    (S.d||[]).forEach((v,i)=>{const li=$("out").children[i];if(v&&li){li.classList.add("done");li.firstChild.checked=true}});
+    updCur();save();
+  }
+}catch{}
 
 function size(){
   const v=id=>parseFloat($(id).value),f=(a,b,n)=>a>0&&b>0&&n>0?Math.round(n*b/a):null;
