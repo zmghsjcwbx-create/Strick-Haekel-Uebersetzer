@@ -4,48 +4,71 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Maschen-Übersetzer</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f1ee;--fg:#22262b;--mut:#6b7078;--card:#fff;--line:#d9d5ce;--acc:#2f5d62;--warn:#b5651d}
-@media(prefers-color-scheme:dark){:root{--bg:#1b1e22;--fg:#e8e6e1;--mut:#9aa0a8;--card:#24282d;--line:#3a3f46;--acc:#7fb5ad;--warn:#e0a060}}
+:root{color-scheme:light;--fg:#3b3340;--mut:#85798a;--line:#f0dde3;--acc:#b0476a;--lav:#e6dcf5;--lavd:#5f4392;--sage:#d9ece1;--sagd:#2f6b4d;--peach:#fde8dc}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 Georgia,"Times New Roman",serif}
-main{max-width:760px;margin:0 auto;padding:28px 16px 60px}
-h1{font-size:1.9rem;margin:0 0 4px;letter-spacing:-.01em}
-h2{font-size:1.15rem;margin:0 0 10px}
-p.sub{margin:0 0 22px;color:var(--mut)}
-section{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:18px}
-textarea,input[type=number],select{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
-textarea{min-height:130px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95rem}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
-button{font:inherit;padding:8px 14px;border:1px solid var(--acc);background:var(--acc);color:var(--card);border-radius:4px;cursor:pointer}
-button.ghost{background:none;color:var(--acc)}
-select{width:auto}
+body{margin:0;color:var(--fg);font:16px/1.6 Nunito,"Segoe UI",system-ui,sans-serif;background:linear-gradient(160deg,#fff1ee 0%,#f5eefb 55%,#e9f5ee 100%) fixed;min-height:100vh}
+main{max-width:780px;margin:0 auto;padding:26px 16px 40px}
+header{display:flex;gap:16px;align-items:center;justify-content:space-between}
+.hdr-art{display:flex;align-items:center;flex-shrink:0}
+h1{font:600 2.1rem/1.15 Fraunces,Georgia,serif;margin:0;color:#7a2f4d}
+.greet{margin:4px 0 0;font-size:1.15rem;color:var(--acc);font-weight:800}
+p.sub{margin:2px 0 0;color:var(--mut)}
+.stitches{height:16px;margin:16px 0 20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='16'%3E%3Cpath d='M1 2l6 11 6-11' fill='none' stroke='%23eab4c6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") repeat-x center}
+h2{font:600 1.2rem Fraunces,Georgia,serif;margin:0 0 12px;color:#7a2f4d}
+section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 6px 20px rgba(176,71,106,.07)}
+textarea,input[type=number],select{width:100%;font:inherit;padding:11px 12px;border:2px solid #ecd7de;border-radius:12px;background:#fffdfc;color:var(--fg)}
+textarea{min-height:140px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.98rem}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(176,71,106,.15)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+button{font:inherit;font-weight:700;padding:9px 18px;border:2px solid var(--acc);background:var(--acc);color:#fff;border-radius:999px;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+button:disabled{opacity:.6}
+button.ghost{background:#fff;color:var(--acc)}
+button.sent{background:var(--sage);border-color:#8fc4a6;color:var(--sagd)}
+select{width:auto;border-radius:999px;padding:8px 14px}
 ol{margin:0;padding:0;list-style:none}
-ol li{display:grid;grid-template-columns:1.6em 7.5em 1fr;gap:6px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline;font-size:1.05rem}
+ol li{display:grid;grid-template-columns:1.6em minmax(5.5em,8.5em) 1fr;gap:8px;padding:11px 4px;border-bottom:1px dashed #ecd7de;align-items:baseline;font-size:1.1rem;line-height:1.5}
 ol li.nolb{grid-template-columns:1.6em 1fr}
 ol li:last-child{border:0}
-.lb{font-weight:bold;color:var(--acc)}
+input[type=checkbox]{accent-color:var(--acc);width:1.15em;height:1.15em}
+.lb{font-weight:800;background:var(--lav);color:var(--lavd);border-radius:999px;padding:1px 10px;font-size:.9rem;text-align:center}
 li.done .lb,li.done .st{opacity:.4;text-decoration:line-through}
-.unk{border-bottom:1px dashed var(--warn)}
+.unk{border-bottom:2px dotted #e08a3c}
 table{width:100%;border-collapse:collapse;font-size:.95rem}
-td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--mut);font-weight:normal}
+td,th{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--peach);color:#7a2f4d;font-weight:800}
+th:first-child{border-radius:10px 0 0 10px}th:last-child{border-radius:0 10px 10px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
 .hint{color:var(--mut);font-size:.9rem;margin:8px 0 0}
-.res{margin-top:12px;font-size:1.05rem}
+.res{margin-top:12px;font-size:1.1rem}
 .hide{display:none}
-@media print{body{background:#fff;color:#000}.noprint,.row,button{display:none}section{border:0}}
+footer{text-align:center;color:var(--mut);font-size:.85rem}
+@media(max-width:520px){header{flex-direction:column-reverse;align-items:flex-start}h1{font-size:1.7rem}}
+@media print{body{background:#fff}.noprint,.row,button,.deco,footer{display:none!important}section{border:0;box-shadow:none}}
 </style>
 </head>
 <body>
 <main>
-<h1>Maschen-Übersetzer</h1>
-<p class="sub">Strick- und Häkelanleitungen aus Englisch (US/UK) und Französisch ins Deutsche.</p>
+<header>
+  <div>
+    <h1>Maschen-Übersetzer</h1>
+    <p class="greet" id="greet"></p>
+    <p class="sub">Strick- und Häkelanleitungen aus Englisch (US/UK) und Französisch ins Deutsche.</p>
+  </div>
+  <div class="hdr-art deco" aria-hidden="true">
+    <svg viewBox="0 0 70 70" width="62" height="62"><g stroke-linecap="round" stroke-width="4"><line x1="10" y1="62" x2="56" y2="10" stroke="#a9cfba"/><line x1="58" y1="62" x2="14" y2="10" stroke="#c5b0e6"/></g><circle cx="56" cy="10" r="5" fill="#a9cfba"/><circle cx="14" cy="10" r="5" fill="#c5b0e6"/></svg>
+    <svg viewBox="0 0 84 80" width="84" height="80"><circle cx="38" cy="40" r="28" fill="#f7c6d4"/><g fill="none" stroke="#e08fa8" stroke-width="2" stroke-linecap="round"><path d="M14 32c14 8 36 8 50-4"/><path d="M12 44c16 8 38 8 52-6"/><path d="M18 58c14 6 30 4 42-8"/><path d="M26 16c-4 16 0 36 14 50"/><path d="M42 12c-6 14-4 38 10 52"/><path d="M62 62c8 6 14 2 18-6" stroke-width="2.5"/></g></svg>
+  </div>
+</header>
+<div class="stitches deco"></div>
 
 <section class="noprint">
-  <h2>Anleitung einfügen</h2>
+  <h2>🧶 Anleitung einfügen</h2>
   <textarea id="in" placeholder="Row 1 (RS): k2, p2, yo, k2tog, rep from * to end&#10;Rang 2: 2 m ens, jeté, m.e jusqu'à la fin"></textarea>
   <div class="row">
     <button id="go">Übersetzen</button>
@@ -62,7 +85,7 @@ label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
 </section>
 
 <section id="outS" class="hide">
-  <h2>Deutsche Anleitung</h2>
+  <h2>🪡 Deutsche Anleitung</h2>
   <ol id="out"></ol>
   <p class="hint noprint">Haken setzen = Reihe erledigt. Gestrichelt unterstrichen = nicht erkannt.</p>
   <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button><button class="ghost" id="rb">Fehler melden</button></div>
@@ -75,12 +98,12 @@ label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
 </section>
 
 <section id="glS" class="hide">
-  <h2>Glossar</h2>
+  <h2>📖 Glossar</h2>
   <table><thead><tr><th>Original</th><th>Deutsch</th><th>Bedeutung</th></tr></thead><tbody id="gl"></tbody></table>
 </section>
 
 <section class="noprint">
-  <h2>Größenumrechnung</h2>
+  <h2>📏 Größenumrechnung</h2>
   <div class="grid">
     <div><label>Anleitung: M / 10 cm</label><input id="gm" type="number" min="1" step="any"></div>
     <div><label>Anleitung: R / 10 cm</label><input id="gr" type="number" min="1" step="any"></div>
@@ -94,9 +117,12 @@ label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
   <div class="res" id="sz"></div>
   <p class="hint">Rechnet Anleitungswerte auf deine Maschenprobe um. Bei Mustersätzen bitte auf den Rapport runden.</p>
 </section>
+<div class="stitches deco"></div>
+<footer id="ver"></footer>
 </main>
 
 <script>
+const NAME="Kerstin",VERSION="3.0",STAND="07.10.2026";
 // [Muster, Deutsch (Text oder fn(m,lang)), Glossar-Name, Bedeutung, Tag: en|fr|us|uk|leer=alle]
 const HK={us:{sc:"fM",hdc:"hStb",dc:"Stb",tr:"DStb"},uk:{dc:"fM",htr:"hStb",tr:"Stb"}};
 const V=[
@@ -345,6 +371,7 @@ function run(){
     :sel!=="auto"?`Manuell gewählt: ${names[lang]}`
     :d.none?"Sprache nicht erkennbar – US angenommen. Bei Bedarf im Dropdown ändern."
     :`Erkannt: ${names[lang]}`+(d.amb&&lang!=="fr"?" · dc/tr sind nicht eindeutig (US und UK unterscheiden sich), US angenommen. Bei Bedarf im Dropdown auf UK stellen.":"");
+  resetRb();
   const used=new Map(),out=$("out");
   out.innerHTML="";
   const lines=raw.split("\n").filter(l=>l.trim());
@@ -370,22 +397,30 @@ $("cp").onclick=async e=>{
 $("pr").onclick=()=>print();
 
 // ---- Fehler melden ----
+function sent(){
+  $("repS").classList.add("hide");$("rc").value="";$("rst").textContent="";
+  $("rb").textContent=`✓ Feedback gesendet, danke ${NAME}!`;$("rb").classList.add("sent");
+}
+function resetRb(){$("rb").textContent="Fehler melden";$("rb").classList.remove("sent")}
+const hr=new Date().getHours();
+$("greet").textContent=`${hr<5?"Hallo":hr<11?"Guten Morgen":hr<18?"Schönen Tag":"Guten Abend"}, ${NAME}! 🧶`;
+$("ver").textContent=`Version ${VERSION} · Stand ${STAND}`;
 // Push aufs Handy: ntfy-App installieren und dieses Thema abonnieren (frei wählbar, möglichst unratbar)
 const NTFY="maschen-bugs-x7f3q9k2vw";
 const SLUG=location.hostname.endsWith(".github.io")?location.hostname.split(".")[0]+"/"+(location.pathname.split("/")[1]||location.hostname):"";
 function report(){
   const out=[...$("out").children].map(li=>[...li.querySelectorAll(".lb,.st")].map(s=>s.textContent).join(" ")).join("\n");
-  return `Kommentar: ${$("rc").value.trim()||"-"}\n\nEingabe:\n${$("in").value.slice(0,1500)}\n\nAusgabe:\n${out.slice(0,1500)}\n\n${$("det").textContent} (Dropdown: ${$("mode").value})`;
+  return `Kommentar: ${$("rc").value.trim()||"-"}\n\nEingabe:\n${$("in").value.slice(0,1500)}\n\nAusgabe:\n${out.slice(0,1500)}\n\n${$("det").textContent} (Dropdown: ${$("mode").value}) · v${VERSION}`;
 }
 $("rb").onclick=()=>{$("repS").classList.toggle("hide");$("ri").classList.toggle("hide",!SLUG)};
 $("rs").onclick=async e=>{
   try{
     const r=await fetch("https://ntfy.sh/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:NTFY,title:"Maschen-Uebersetzer: Fehlermeldung",tags:["warning"],message:report()})});
     if(!r.ok)throw 0;
-    $("rst").textContent="Danke, gesendet!";e.target.disabled=true;
+    sent();
   }catch{$("rst").textContent="Senden fehlgeschlagen. Bitte die GitHub-Variante nutzen."}
 };
-$("ri").onclick=()=>open(`https://github.com/${SLUG}/issues/new?title=${encodeURIComponent("Übersetzungsfehler")}&body=${encodeURIComponent(report())}`,"_blank");
+$("ri").onclick=()=>{open(`https://github.com/${SLUG}/issues/new?title=${encodeURIComponent("Übersetzungsfehler")}&body=${encodeURIComponent(report())}`,"_blank");sent()};
 
 function size(){
   const v=id=>parseFloat($(id).value),f=(a,b,n)=>a>0&&b>0&&n>0?Math.round(n*b/a):null;
