@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Maschen-Übersetzer</title>
 <style>
-:root{--bg:#f3f1ee;--fg:#22262b;--mut:#6b7078;--card:#fff;--line:#d9d5ce;--acc:#2f5d62;--hi:#dcebe6}
-@media(prefers-color-scheme:dark){:root{--bg:#1b1e22;--fg:#e8e6e1;--mut:#9aa0a8;--card:#24282d;--line:#3a3f46;--acc:#7fb5ad;--hi:#2d4a46}}
+:root{--bg:#f3f1ee;--fg:#22262b;--mut:#6b7078;--card:#fff;--line:#d9d5ce;--acc:#2f5d62;--warn:#b5651d}
+@media(prefers-color-scheme:dark){:root{--bg:#1b1e22;--fg:#e8e6e1;--mut:#9aa0a8;--card:#24282d;--line:#3a3f46;--acc:#7fb5ad;--warn:#e0a060}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 Georgia,"Times New Roman",serif}
 main{max-width:760px;margin:0 auto;padding:28px 16px 60px}
@@ -14,17 +14,20 @@ h1{font-size:1.9rem;margin:0 0 4px;letter-spacing:-.01em}
 h2{font-size:1.15rem;margin:0 0 10px}
 p.sub{margin:0 0 22px;color:var(--mut)}
 section{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:18px}
-textarea,input,select{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
+textarea,input[type=number],select{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
 textarea{min-height:130px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95rem}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
 button{font:inherit;padding:8px 14px;border:1px solid var(--acc);background:var(--acc);color:var(--card);border-radius:4px;cursor:pointer}
 button.ghost{background:none;color:var(--acc)}
 select{width:auto}
-ol{margin:0;padding-left:1.6em}
-ol li{padding:4px 0;border-bottom:1px solid var(--line)}
+ol{margin:0;padding:0;list-style:none}
+ol li{display:grid;grid-template-columns:1.6em 7.5em 1fr;gap:6px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline;font-size:1.05rem}
+ol li.nolb{grid-template-columns:1.6em 1fr}
 ol li:last-child{border:0}
-mark{background:var(--hi);color:inherit;padding:0 3px;border-radius:3px}
+.lb{font-weight:bold;color:var(--acc)}
+li.done .lb,li.done .st{opacity:.4;text-decoration:line-through}
+.unk{border-bottom:1px dashed var(--warn)}
 table{width:100%;border-collapse:collapse;font-size:.95rem}
 td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--mut);font-weight:normal}
@@ -33,30 +36,42 @@ label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
 .hint{color:var(--mut);font-size:.9rem;margin:8px 0 0}
 .res{margin-top:12px;font-size:1.05rem}
 .hide{display:none}
-@media print{body{background:#fff;color:#000}section.noprint,.row,button{display:none}section{border:0}}
+@media print{body{background:#fff;color:#000}.noprint,.row,button{display:none}section{border:0}}
 </style>
 </head>
 <body>
 <main>
 <h1>Maschen-Übersetzer</h1>
-<p class="sub">Strick- und Häkelabkürzungen aus Englisch und Französisch ins Deutsche.</p>
+<p class="sub">Strick- und Häkelanleitungen aus Englisch (US/UK) und Französisch ins Deutsche.</p>
 
 <section class="noprint">
   <h2>Anleitung einfügen</h2>
-  <textarea id="in" placeholder="Row 1: k2, p2, yo, k2tog, rep to end&#10;Rang 2: 2 m ens, jeté, m.e"></textarea>
+  <textarea id="in" placeholder="Row 1 (RS): k2, p2, yo, k2tog, rep from * to end&#10;Rang 2: 2 m ens, jeté, m.e jusqu'à la fin"></textarea>
   <div class="row">
     <button id="go">Übersetzen</button>
     <button class="ghost" id="ex">Beispiel</button>
-    <label style="margin:0 0 0 auto">Häkeln (dc/tr):</label>
-    <select id="mode"><option value="us">US-Begriffe</option><option value="uk">UK-Begriffe</option></select>
+    <label style="margin:0 0 0 auto">Sprache:</label>
+    <select id="mode">
+      <option value="auto">Automatisch erkennen</option>
+      <option value="us">Englisch (US)</option>
+      <option value="uk">Englisch (UK)</option>
+      <option value="fr">Französisch</option>
+    </select>
   </div>
-  <p class="hint">Jede Zeile wird als eigene Reihe ausgegeben. Zahlen wie „k2“ oder „p3“ werden erkannt.</p>
+  <p class="hint" id="det">Die Sprache wird automatisch erkannt. Das Dropdown ist nur für Fälle, in denen die Erkennung danebenliegt.</p>
 </section>
 
 <section id="outS" class="hide">
   <h2>Deutsche Anleitung</h2>
   <ol id="out"></ol>
-  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button></div>
+  <p class="hint noprint">Haken setzen = Reihe erledigt. Gestrichelt unterstrichen = nicht erkannt.</p>
+  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button><button class="ghost" id="rb">Fehler melden</button></div>
+  <div id="repS" class="hide noprint" style="margin-top:12px">
+    <label>Was ist falsch oder was hättest du erwartet?</label>
+    <textarea id="rc" style="min-height:70px;font-family:inherit"></textarea>
+    <div class="row"><button id="rs">Senden</button><button class="ghost" id="ri">Als GitHub-Issue</button><span id="rst" class="hint"></span></div>
+    <p class="hint">Gesendet werden Eingabe, Ausgabe und dein Kommentar, keine persönlichen Daten.</p>
+  </div>
 </section>
 
 <section id="glS" class="hide">
@@ -82,127 +97,295 @@ label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
 </main>
 
 <script>
-// [Muster (Regex), Deutsch (Text oder Funktion), Glossar-Name, Bedeutung, Art, Modus]
-const N=(m,t)=>m[1]?m[1]+" "+t:t;
-const D=[
-// Stricken EN
-["k(\\d*)tbl",m=>N(m,"M re verschränkt"),"k1tbl","Rechte Masche im hinteren Maschenglied"],
-["p(\\d*)tbl",m=>N(m,"M li verschränkt"),"p1tbl","Linke Masche im hinteren Maschenglied"],
-["k(\\d*)tog",m=>(m[1]||2)+" M re zusammenstr.","k2tog","Maschen rechts zusammenstricken (Abnahme)"],
-["p(\\d*)tog",m=>(m[1]||2)+" M li zusammenstr.","p2tog","Maschen links zusammenstricken (Abnahme)"],
-["ssk","1 M abheben, 1 M re, abgehobene M überziehen","ssk","Linksneigende Abnahme"],
-["sl ?1|sl","M abheben","sl","Masche abheben, ohne sie zu stricken"],
-["psso","überziehen","psso","Abgehobene Masche über die gestrickte ziehen"],
-["yo|yfwd","U","yo","Umschlag"],
-["kfb|k1f&b","1 M re aus Vorder- und Rückglied","kfb","Zunahme: in dieselbe Masche vorn und hinten einstechen"],
-["m1l","1 M aus dem Querfaden aufnehmen (links verschränkt)","m1l","Linksneigende Zunahme"],
-["m1r","1 M aus dem Querfaden aufnehmen (rechts verschränkt)","m1r","Rechtsneigende Zunahme"],
-["m1","1 M aus dem Querfaden aufnehmen","m1","Zunahme aus dem Querfaden"],
-["cast on|co","anschlagen","co","Maschen anschlagen"],
-["bind off|cast off|bo","abketten","bo","Maschen abketten"],
-["stockinette stitch|stockinette|st st|stst","glatt rechts","st st","Rechts auf Hinreihe, links auf Rückreihe"],
-["garter stitch|garter st|garter","kraus rechts","garter","Alle Reihen rechts"],
-["rs|right side","Hinr. (rechte Seite)","rs","Rechte Seite der Arbeit"],
-["ws|wrong side","Rückr. (linke Seite)","ws","Linke Seite der Arbeit"],
-["rnds?|rounds?","Rd","rnd","Runde"],
-["rows?","R","row","Reihe"],
-["repeat|rep","wiederholen","rep","Wiederholen"],
-["inc","zunehmen","inc","Zunahme"],
-["dec","abnehmen","dec","Abnahme"],
-["beg","Beginn","beg","Beginn / beginnen"],
-["pm|place marker","Markierer setzen","pm","Maschenmarkierer setzen"],
-["sm","Markierer umhängen","sm","Maschenmarkierer von Nadel zu Nadel heben"],
-["cn","Zopfnadel","cn","Zopfnadel (Hilfsnadel)"],
-["wyif","Faden vor die Arbeit","wyif","Faden vor der Arbeit"],
-["wyib","Faden hinter die Arbeit","wyib","Faden hinter der Arbeit"],
-["sts?","M","st","Masche(n)"],
-// Stricken FR
-["(\\d+) ?m\\.? ?ens(?:emble)?",m=>m[1]+" M re zusammenstr.","2 m ens","Maschen zusammenstricken (Abnahme)"],
-["surjet simple|sjs","1 M abheben, 1 M re, abgehobene M überziehen","sjs","Linksneigende Abnahme"],
-["jeté|jete|jt","U","jeté","Umschlag"],
-["m\\.? ?end\\.?|à l'endroit|end\\.","re","m.e / end.","Rechte Masche"],
-["m\\.? ?env\\.?|à l'envers|env\\.","li","m.env / env.","Linke Masche"],
-["rabattre|rab\\.?|rabat","abketten","rab.","Maschen abketten"],
-["monter|montage","anschlagen","monter","Maschen anschlagen"],
-["point mousse","kraus rechts","point mousse","Alle Reihen rechts"],
-["jersey","glatt rechts","jersey","Rechts auf Hinreihe, links auf Rückreihe"],
-["rangs?|rg","R","rang","Reihe"],
-["tours?","Rd","tour","Runde"],
-["aug\\.?","zunehmen","aug.","Zunahme"],
-["dim\\.?","abnehmen","dim.","Abnahme"],
-["glisser|gl","abheben","glisser","Masche abheben"],
-["mailles?","M","maille","Masche(n)"],
-// Häkeln
-["ch|ml|maille en l'air","Lm","ch / ml","Luftmasche"],
-["sl st|ss|mc|maille coulée","Km","sl st / mc","Kettmasche"],
-["sc|ms|maille serrée","fM","sc / ms","Feste Masche"],
-["hdc|htr|mi-bride|demi-bride","hStb","hdc / htr","Halbes Stäbchen",null,"all"],
-["dtr","DStb","dtr (UK)","Doppelstäbchen","uk"],
-["dtr","3fStb","dtr (US)","Dreifaches Stäbchen","us"],
-["dc","fM","dc (UK)","Feste Masche","uk"],
-["dc","Stb","dc (US)","Stäbchen","us"],
-["tr","Stb","tr (UK)","Stäbchen","uk"],
-["tr","DStb","tr (US)","Doppelstäbchen","us"],
-["db|double bride","DStb","db","Doppelstäbchen"],
-["bride","Stb","bride","Stäbchen"],
-["magic ring|magic circle|mr|anneau magique|cercle magique","Fadenring","mr","Magic Ring / Fadenring"],
-["blo","nur hinteres Maschenglied","blo","Nur ins hintere Maschenglied einstechen"],
-["flo","nur vorderes Maschenglied","flo","Nur ins vordere Maschenglied einstechen"],
-["turn","wenden","turn","Arbeit wenden"],
-["fasten off|fo","Faden abschneiden und durchziehen","fo","Arbeit beenden"],
-["skip|sk","überspringen","skip","Masche(n) überspringen"],
-// Allgemein, zuletzt
-["k(\\d+)",m=>m[1]+" re","k2","Rechte Maschen (Zahl = Anzahl)"],
-["p(\\d+)",m=>m[1]+" li","p2","Linke Maschen (Zahl = Anzahl)"],
-["k","re","k","Rechte Masche"],
-["p","li","p","Linke Masche"],
-["m","M","m","Masche(n)"],
-].map(([p,d,g,e,u])=>({re:new RegExp("(?:"+p+")(?![\\p{L}\\d])","iuy"),d,g,e,u}));
+// [Muster, Deutsch (Text oder fn(m,lang)), Glossar-Name, Bedeutung, Tag: en|fr|us|uk|leer=alle]
+const HK={us:{sc:"fM",hdc:"hStb",dc:"Stb",tr:"DStb"},uk:{dc:"fM",htr:"hStb",tr:"Stb"}};
+const V=[
+// ---- Stricken EN ----
+["k(\\d*)tog tbl",m=>`${m[1]||2} M re verschränkt zusammenstr.`,"k2tog tbl","Rechts verschränkt zusammenstricken","en"],
+["p(\\d*)tog tbl",m=>`${m[1]||2} M li verschränkt zusammenstr.`,"p2tog tbl","Links verschränkt zusammenstricken","en"],
+["k(\\d*)tog",m=>`${m[1]||2} M re zusammenstr.`,"k2tog","Rechts zusammenstricken (Abnahme)","en"],
+["p(\\d*)tog",m=>`${m[1]||2} M li zusammenstr.`,"p2tog","Links zusammenstricken (Abnahme)","en"],
+["k(\\d*)tbl",m=>`${m[1]||1} M re verschränkt`,"k1tbl","Rechts im hinteren Maschenglied","en"],
+["p(\\d*)tbl",m=>`${m[1]||1} M li verschränkt`,"p1tbl","Links im hinteren Maschenglied","en"],
+["tbl","verschränkt","tbl","Im hinteren Maschenglied","en"],
+["ssk","1 M abheben, 1 M re, abgehobene M überziehen","ssk","Linksneigende Abnahme","en"],
+["sk2p","1 M abheben, 2 M re zusammenstr., abgehobene M überziehen","sk2p","Linksneigende Doppelabnahme","en"],
+["s2kp2?|cdd","2 M zusammen abheben, 1 M re, abgehobene M überziehen","s2kp / cdd","Mittige Doppelabnahme","en"],
+["sl ?(\\d*)",m=>`${m[1]||1} M abheben`,"sl","Masche abheben, ohne sie zu stricken","en"],
+["sl ?1,? ?k1,? ?psso","1 M abheben, 1 M re, abgehobene M überziehen","sl1, k1, psso","Linksneigende Abnahme: abgehobene Masche über die gestrickte ziehen","en"],
+["sl ?1,? ?k2tog,? ?psso","1 M abheben, 2 M re zusammenstr., abgehobene M überziehen","sl1, k2tog, psso","Linksneigende Doppelabnahme","en"],
+["p2sso","2 M überziehen","p2sso","Zwei abgehobene Maschen über die gestrickte ziehen","en"],
+["psso","abgehobene M überziehen","psso","Abgehobene Masche über die zuletzt gestrickte Masche ziehen","en"],
+["yo|yfwd|yrn","U","yo","Umschlag","en"],
+["kfb|k1f&b","1 M re aus Vorder- und Rückglied","kfb","Zunahme: vorn und hinten in dieselbe M","en"],
+["m1l","1 M aus dem Querfaden aufnehmen (links verschränkt)","m1l","Linksneigende Zunahme","en"],
+["m1r","1 M aus dem Querfaden aufnehmen (rechts verschränkt)","m1r","Rechtsneigende Zunahme","en"],
+["m1","1 M aus dem Querfaden aufnehmen","m1","Zunahme aus dem Querfaden","en"],
+["c(\\d+)f",m=>`${m[1]} M Zopf (Zopfnadel vor die Arbeit)`,"c4f","Zopf, Hilfsnadel vor der Arbeit","en"],
+["c(\\d+)b",m=>`${m[1]} M Zopf (Zopfnadel hinter die Arbeit)`,"c4b","Zopf, Hilfsnadel hinter der Arbeit","en"],
+["cast on|co","anschlagen","co","Maschen anschlagen","en"],
+["bind off|cast off|bo","abketten","bo","Maschen abketten","en"],
+["stockinette stitch|stockinette|st st|stst","glatt rechts","st st","Rechts auf Hinreihe, links auf Rückreihe","en"],
+["garter stitch|garter st|garter","kraus rechts","garter","Alle Reihen rechts","en"],
+["rs|right side","Hinr.","rs","Rechte Seite (Hinreihe)","en"],
+["ws|wrong side","Rückr.","ws","Linke Seite (Rückreihe)","en"],
+["rnds?|rounds?","Rd","rnd","Runde","en"],
+["rows?","R","row","Reihe","en"],
+["repeat|rep","wiederholen","rep","Wiederholen","en"],
+["inc","zunehmen","inc","Zunahme","en"],
+["dec","abnehmen","dec","Abnahme","en"],
+["beg","Beginn","beg","Beginn / beginnen","en"],
+["pm|place marker","Markierer setzen","pm","Maschenmarkierer setzen","en"],
+["sm","Markierer umhängen","sm","Markierer von Nadel zu Nadel heben","en"],
+["cn","Zopfnadel","cn","Zopfnadel (Hilfsnadel)","en"],
+["wyif","Faden vor die Arbeit","wyif","Faden vor der Arbeit","en"],
+["wyib","Faden hinter die Arbeit","wyib","Faden hinter der Arbeit","en"],
+["stitch(?:es)?|sts?","M","st","Masche(n)","en"],
+["k(\\d+)",m=>m[1]+" re","k2","Rechte Maschen (Zahl = Anzahl)","en"],
+["p(\\d+)",m=>m[1]+" li","p2","Linke Maschen (Zahl = Anzahl)","en"],
+["around","rundum","around","Rundherum","en"],
+["k","re","k","Rechte Masche","en"],
+["p","li","p","Linke Masche","en"],
+// ---- Wortlaute EN (Anweisungen) ----
+["rep(?:eat)? from \\*+ to end(?: of (?:row|rnd|round))?","ab * bis Reihenende wdh.","rep from * to end","Ab * bis zum Ende wiederholen","en"],
+["rep(?:eat)? from \\*+ to last (\\d+) (?:sts?|stitch(?:es)?)",m=>`ab * wdh. bis ${m[1]} M vor Reihenende`,"rep from * to last n sts","Wiederholen, n Maschen vor Ende stoppen","en"],
+["rep(?:eat)? from \\*+ to (?:the )?(?:next )?markers?","ab * wdh. bis zum Markierer","rep from * to marker","Wiederholen bis zum Markierer","en"],
+["rep(?:eat)? from \\*+","ab * wdh.","rep from *","Ab dem Sternchen wiederholen","en"],
+["to end of (?:row|rnd|round)|to end|to the end","bis Reihenende","to end","Bis zum Ende der Reihe/Runde","en"],
+["to last (\\d+) (?:sts?|stitch(?:es)?)",m=>`bis ${m[1]} M vor Reihenende`,"to last n sts","Bis n Maschen vor dem Ende","en"],
+["to last (?:st|stitch)","bis 1 M vor Reihenende","to last st","Bis 1 Masche vor dem Ende","en"],
+["to (\\d+) (?:sts?|stitch(?:es)?) before (?:the )?(?:end|markers?)",m=>`bis ${m[1]} M vor ${/end/i.test(m[0])?"Reihenende":"dem Markierer"}`,"to n sts before","Bis n Maschen vor Ende/Markierer","en"],
+["to (?:the )?(?:next )?markers?","bis zum Markierer","to marker","Bis zum Maschenmarkierer","en"],
+["across(?: (?:row|rnd|round))?","über die ganze Reihe","across","Über die gesamte Reihe","en"],
+["in each of (?:the )?next (\\d+) (?:sts?|stitch(?:es)?)",m=>`in jede der nächsten ${m[1]} M`,"in each of next n","In jede der nächsten n Maschen","en"],
+["(?:in|into) each (?:st|stitch)|in every (?:st|stitch)","in jede M","in each st","In jede Masche","en"],
+["in (?:the )?next (?:st|stitch)","in die nächste M","in next st","In die nächste Masche","en"],
+["in (?:the )?next (?:ch|chain)","in die nächste Lm","in next ch","In die nächste Luftmasche","en"],
+["in (?:the )?same (?:st|stitch)","in dieselbe M","in same st","In dieselbe Masche","en"],
+["in (?:the )?(?:first|1st) (?:st|stitch|ch)","in die erste M","in first st","In die erste Masche","en"],
+["(?:in|into) (?:the )?(?:ring|magic ring|magic circle)","in den Fadenring","in ring","In den Fadenring","en"],
+["next (\\d+) (?:sts?|stitch(?:es)?)",m=>`die nächsten ${m[1]} M`,"next n sts","Die nächsten n Maschen","en"],
+["next (?:st|stitch)","nächste M","next st","Nächste Masche","en"],
+["(\\d+) times",m=>m[1]+"-mal","n times","n-mal","en"],
+["twice","2-mal","twice","Zweimal","en"],
+["once","1-mal","once","Einmal","en"],
+["every other (?:row|rnd|round)","jede 2. R","every other row","Jede zweite Reihe","en"],
+["every (\\d+)(?:st|nd|rd|th) (?:row|rnd|round)",m=>`jede ${m[1]}. R`,"every nth row","Jede n-te Reihe","en"],
+["work even|continue even","gerade weiterarbeiten","work even","Ohne Zu-/Abnahmen weiterarbeiten","en"],
+["in pattern","im Muster","in pattern","Im Muster weiter","en"],
+["as established|as set|as before","wie zuvor","as established","Wie bisher","en"],
+["continue","weiterarbeiten","continue","Weiterarbeiten","en"],
+["until","bis","until","Bis","en"],
+["ending with","enden mit","ending with","Enden mit","en"],
+["at the same time","gleichzeitig","at the same time","Gleichzeitig","en"],
+["knitwise","wie zum Rechtsstricken","knitwise","Wie zum Rechtsstricken","en"],
+["purlwise","wie zum Linksstricken","purlwise","Wie zum Linksstricken","en"],
+["as follows","wie folgt","as follows","Wie folgt","en"],
+["then","dann","then","Dann","en"],
+["join with (?:a )?(?:sl st|slip stitch)|(?:sl st|slip stitch) to join","mit 1 Km schließen","join with sl st","Mit Kettmasche zur Runde schließen","en"],
+["join","zur Runde schließen","join","Zur Runde schließen","en"],
+["break yarn|cut yarn","Faden abschneiden","break yarn","Faden abschneiden","en"],
+["weave in ends","Fäden vernähen","weave in ends","Fadenenden vernähen","en"],
+["block|blocking","spannen","block","Spannen / Dämpfen","en"],
+["gauge|tension","Maschenprobe","gauge","Maschenprobe","en"],
+["swatch","Probelappen","swatch","Probelappen","en"],
+["back loops? only","nur hinteres Maschenglied","back loop only","Nur ins hintere Maschenglied","en"],
+["front loops? only","nur vorderes Maschenglied","front loop only","Nur ins vordere Maschenglied","en"],
+["ch-?sp|ch space|chain space","Lm-Bogen","ch-sp","Luftmaschenbogen","en"],
+["t-ch|turning ch(?:ain)?","Wende-Lm","t-ch","Wendeluftmasche","en"],
+["follow chart|see chart","Strickschrift beachten","chart","Zählmuster beachten","en"],
+["(?:change|new) colou?r","Farbe wechseln","change color","Farbwechsel","en"],
+["mc","Hauptfarbe","MC","Main Color","en"],
+["cc\\d?","Kontrastfarbe","CC","Contrast Color","en"],
+// ---- Häkeln EN ----
+["(sc|hdc|htr|dc|tr)(\\d*)tog",(m,l)=>`${m[2]||2} ${(HK[l]||HK.us)[m[1].toLowerCase()]||"M"} zusammen abmaschen`,"sc2tog","Maschen zusammen abmaschen (Abnahme)","en"],
+["ch ?(\\d+)",m=>m[1]+" Lm","ch 4","Luftmaschen (Zahl = Anzahl)","en"],
+["ch","Lm","ch","Luftmasche","en"],
+["sl st|ss","Km","sl st","Kettmasche","en"],
+["sc","fM","sc","Feste Masche","en"],
+["hdc|htr","hStb","hdc / htr","Halbes Stäbchen","en"],
+["dtr","DStb","dtr","Doppelstäbchen","uk"],
+["dtr","Dreifach-Stb","dtr","Dreifaches Stäbchen","us"],
+["dc","fM","dc","Feste Masche (UK)","uk"],
+["dc","Stb","dc","Stäbchen (US)","us"],
+["tr","Stb","tr","Stäbchen (UK)","uk"],
+["tr","DStb","tr","Doppelstäbchen (US)","us"],
+["magic ring|magic circle|mr","Fadenring","mr","Magic Ring","en"],
+["blo","nur hinteres Maschenglied","blo","Nur ins hintere Maschenglied","en"],
+["flo","nur vorderes Maschenglied","flo","Nur ins vordere Maschenglied","en"],
+["turn","wenden","turn","Arbeit wenden","en"],
+["fasten off|fo","Faden abschneiden und durchziehen","fo","Arbeit beenden","en"],
+["skip|sk","überspringen","skip","Masche(n) überspringen","en"],
+// ---- Französisch ----
+["répéter de \\* jusqu'à la fin(?: du (?:rang|tour))?|rép\\.? de \\* jusqu'à la fin","ab * bis Reihenende wdh.","répéter de * jusqu'à la fin","Ab * bis zum Ende wiederholen","fr"],
+["répéter de \\*|rép\\.? de \\*","ab * wdh.","répéter de *","Ab dem Sternchen wiederholen","fr"],
+["jusqu'à la fin(?: du (?:rang|tour))?|à la fin du rang|jusqu'au bout","bis Reihenende","jusqu'à la fin","Bis zum Ende der Reihe/Runde","fr"],
+["jusqu'à (\\d+) m(?:ailles?)? de la fin|jusqu'aux? (\\d+) dernières? m(?:ailles?)?",m=>`bis ${m[1]||m[2]} M vor Reihenende`,"jusqu'à n m de la fin","Bis n Maschen vor dem Ende","fr"],
+["jusqu'à|jusqu'au","bis","jusqu'à","Bis","fr"],
+["répéter|rép\\.?","wiederholen","répéter","Wiederholen","fr"],
+["(\\d+) fois",m=>m[1]+"-mal","n fois","n-mal","fr"],
+["deux fois","2-mal","deux fois","Zweimal","fr"],
+["dans chaque m(?:aille)?","in jede M","dans chaque m","In jede Masche","fr"],
+["dans la m(?:aille)? suivante","in die nächste M","dans la m suivante","In die nächste Masche","fr"],
+["dans la même m(?:aille)?","in dieselbe M","dans la même m","In dieselbe Masche","fr"],
+["dans la (?:1re|première) m(?:aille)?","in die erste M","dans la 1re m","In die erste Masche","fr"],
+["dans (?:le cercle|l'anneau)","in den Ring","dans l'anneau","In den Ring","fr"],
+["les (\\d+) m(?:ailles?)? suivantes?",m=>`die nächsten ${m[1]} M`,"les n m suivantes","Die nächsten n Maschen","fr"],
+["comme (?:avant|précédemment)","wie zuvor","comme avant","Wie bisher","fr"],
+["continuer","weiterarbeiten","continuer","Weiterarbeiten","fr"],
+["puis","dann","puis","Dann","fr"],
+["(\\d+) ?m\\.? ?ens(?:emble)? ?(?:à l'envers|env\\.?)",m=>`${m[1]} M li zusammenstr.`,"n m ens (env.)","Links zusammenstricken","fr"],
+["(\\d+) ?m\\.? ?ens(?:emble)?(?: ?(?:à l'endroit|end\\.?))?",m=>`${m[1]} M re zusammenstr.`,"n m ens","Rechts zusammenstricken (Abnahme)","fr"],
+["surjet simple|sjs","1 M abheben, 1 M re, abgehobene M überziehen","sjs","Linksneigende Abnahme","fr"],
+["surjet double|sjd","2 M zusammen abheben, 1 M re, abgehobene M überziehen","sjd","Mittige Doppelabnahme","fr"],
+["jeté|jete|jt","U","jeté","Umschlag","fr"],
+["m\\.? ?e(?:nd)?\\.?|à l'endroit|end\\.","re","m.e / end.","Rechte Masche","fr"],
+["m\\.? ?env\\.?|à l'envers|env\\.","li","m.env / env.","Linke Masche","fr"],
+["rabattre|rab\\.?","abketten","rab.","Maschen abketten","fr"],
+["monter|montage","anschlagen","monter","Maschen anschlagen","fr"],
+["point mousse","kraus rechts","point mousse","Alle Reihen rechts","fr"],
+["jersey","glatt rechts","jersey","Rechts auf Hinreihe, links auf Rückreihe","fr"],
+["rangs?|rg","R","rang","Reihe","fr"],
+["tours?","Rd","tour","Runde","fr"],
+["aug\\.?","zunehmen","aug.","Zunahme","fr"],
+["dim\\.?","abnehmen","dim.","Abnahme","fr"],
+["glisser|gl","abheben","glisser","Masche abheben","fr"],
+["poser un marqueur|pos\\.? marqueur","Markierer setzen","poser un marqueur","Maschenmarkierer setzen","fr"],
+["marqueur","Markierer","marqueur","Maschenmarkierer","fr"],
+["arrêter le fil|arrêter|arreter","Faden abschneiden und durchziehen","arrêter","Arbeit beenden","fr"],
+["couper le fil","Faden abschneiden","couper le fil","Faden abschneiden","fr"],
+["rentrer les fils","Fäden vernähen","rentrer les fils","Fadenenden vernähen","fr"],
+["échantillon","Maschenprobe","échantillon","Maschenprobe","fr"],
+["tourner","wenden","tourner","Arbeit wenden","fr"],
+["fermer en rond|former un anneau|joindre|relier","zur Runde schließen","fermer en rond","Zur Runde schließen","fr"],
+["mailles?","M","maille","Masche(n)","fr"],
+["m","M","m","Masche(n)","fr"],
+// Häkeln FR
+["ml ?(\\d+)",m=>m[1]+" Lm","ml 4","Luftmaschen (Zahl = Anzahl)","fr"],
+["ml|maille en l'air","Lm","ml","Luftmasche","fr"],
+["mc|maille coulée","Km","mc","Kettmasche","fr"],
+["ms|maille serrée","fM","ms","Feste Masche","fr"],
+["mi-b|demi-bride","hStb","mi-b","Halbes Stäbchen","fr"],
+["db|double bride","DStb","db","Doppelstäbchen","fr"],
+["tb|triple bride","Dreifach-Stb","tb","Dreifaches Stäbchen","fr"],
+["b|bride","Stb","b","Bride = Stäbchen","fr"],
+["cercle magique|anneau magique","Fadenring","anneau magique","Magic Ring","fr"],
+].map(([p,d,g,e,t])=>({re:new RegExp("(?:"+p.replace(/ (?!\?)/g,"\\s+")+")(?![\\p{L}\\d])","iuy"),d,g,e,t,len:p.length}))
+ .sort((a,b)=>b.len-a.len);
+
+const ok=(t,l)=>!t||t===l||(t==="en"&&l!=="fr");
+const STOP=new Set("the and of to a an on at in le la les de du des et un une".split(" "));
+const cnt=(t,w)=>(t.match(new RegExp("(?<![\\p{L}\\d])(?:"+w+")(?![\\p{L}\\d])","giu"))||[]).length;
+const FRW="rangs?|tours?|m\\.?e|m\\.?end|m\\.?env|jeté|jt|ens|ensemble|rab|rabattre|monter|montage|mailles?|répéter|rép|endroit|envers|ml|ms|mi-b|bride|jusqu'à|jusqu'aux|jusqu'au|dans|chaque|suivantes?|fois|puis|fin|aug|dim|point mousse|jersey|surjet|tricoter|arrêter";
+const ENW="rows?|rnds?|rounds?|repeat|rep|each|next|to end|from|with|knit|purl|k\\d*|p\\d*|yo|sl|ch|sc|hdc|htr|dc|tr|inc|dec|sts?|stitch(?:es)?|together|until|across|even|cast|bind|off|turn|ssk";
+const UKW="htr|yrh|yrn|tension|colour|cast off",USW="hdc|sc|sc\\d*tog|bind off|gauge|color";
+
+function detect(t){
+  const fr=cnt(t,FRW),en=cnt(t,ENW);
+  if(fr>en)return{lang:"fr"};
+  const uk=cnt(t,UKW),us=cnt(t,USW);
+  return{lang:uk>us?"uk":"us",amb:uk===us&&cnt(t,"dc|tr|dtr")>0,none:fr+en===0};
+}
 
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const isW=c=>/[\p{L}\d]/u.test(c||"");
 
-function tr(text,mode,used){
+function tr(text,lang,used){
   let o="",i=0;
   while(i<text.length){
+    const c=text[i];
+    if(!isW(c)){o+=esc(c);i++;continue}
     let hit=null;
-    if(!isW(text[i-1])&&isW(text[i])){
-      for(const e of D){
-        if(e.u&&e.u!==mode)continue;
-        e.re.lastIndex=i;
-        const m=e.re.exec(text);
-        if(m){hit={e,m};break}
-      }
+    for(const e of V){
+      if(!ok(e.t,lang))continue;
+      e.re.lastIndex=i;
+      const m=e.re.exec(text);
+      if(m){hit={e,m};break}
     }
     if(hit){
-      const de=typeof hit.e.d==="function"?hit.e.d(hit.m):hit.e.d;
-      o+="<mark>"+esc(de)+"</mark>";
-      if(!used.has(hit.e.g))used.set(hit.e.g,{orig:hit.m[0],de:typeof hit.e.d==="function"?de:hit.e.d,e:hit.e.e});
+      const de=typeof hit.e.d==="function"?hit.e.d(hit.m,lang):hit.e.d;
+      o+=esc(de);
+      if(!used.has(hit.e.g))used.set(hit.e.g,{orig:hit.m[0],de,e:hit.e.e});
       i+=hit.m[0].length;
-    }else{o+=esc(text[i]);i++}
+    }else{
+      const w=text.slice(i).match(/^[\p{L}\d]+/u)[0];
+      o+=/^\p{L}{2,}$/u.test(w)&&!STOP.has(w.toLowerCase())?`<span class="unk">${esc(w)}</span>`:esc(w);
+      i+=w.length;
+    }
   }
   return o;
 }
 
+const LAB=/^\s*(rows?|rnds?|rounds?|rangs?|rg|tours?)\.?\s*(\d+(?:\s*(?:[-–—,&]|to|à|et|and)\s*\d+)*)\s*(?:\(([^)]*)\))?\s*[:.\-–]\s*/i;
+function row(line,lang,used){
+  let lb="",rest=line;
+  const m=line.match(LAB);
+  if(m){
+    const typ=/^(rn|ro|tou)/i.test(m[1])&&!/^row/i.test(m[1])&&!/^rang/i.test(m[1])?"Rd":"R";
+    const n=m[2].replace(/\s*(?:[-–—]|to|à)\s*/gi,"–").replace(/\s*(?:&|and|et)\s*/gi," + ").replace(/\s*,\s*/g,", ");
+    lb=/^\d+$/.test(n)?`${n}. ${typ}`:`${typ} ${n}`;
+    if(m[3]){const s=m[3].trim();
+      lb+=` (${/^(rs|right side|endroit|end\.?)$/i.test(s)?"Hinr.":/^(ws|wrong side|envers|env\.?)$/i.test(s)?"Rückr.":esc(s)})`}
+    rest=line.slice(m[0].length);
+  }
+  const li=document.createElement("li");
+  if(!lb)li.className="nolb";
+  li.innerHTML=`<input type="checkbox" aria-label="erledigt">${lb?`<span class="lb">${lb}</span>`:""}<span class="st">${tr(rest.trim(),lang,used)}</span>`;
+  li.firstChild.onchange=e=>li.classList.toggle("done",e.target.checked);
+  return li;
+}
+
 function run(){
-  const used=new Map(),mode=$("mode").value;
-  const lines=$("in").value.split("\n").filter(l=>l.trim());
-  $("out").innerHTML=lines.map(l=>"<li>"+tr(l,mode,used)+"</li>").join("");
+  const raw=$("in").value.replace(/[’‘]/g,"'");
+  const sel=$("mode").value,d=detect(raw);
+  const lang=sel==="auto"?d.lang:sel;
+  const names={us:"Englisch (US)",uk:"Englisch (UK)",fr:"Französisch"};
+  $("det").textContent=!raw.trim()?"Die Sprache wird automatisch erkannt. Das Dropdown ist nur für Fälle, in denen die Erkennung danebenliegt."
+    :sel!=="auto"?`Manuell gewählt: ${names[lang]}`
+    :d.none?"Sprache nicht erkennbar – US angenommen. Bei Bedarf im Dropdown ändern."
+    :`Erkannt: ${names[lang]}`+(d.amb&&lang!=="fr"?" · dc/tr sind nicht eindeutig (US und UK unterscheiden sich), US angenommen. Bei Bedarf im Dropdown auf UK stellen.":"");
+  const used=new Map(),out=$("out");
+  out.innerHTML="";
+  const lines=raw.split("\n").filter(l=>l.trim());
+  lines.forEach(l=>out.appendChild(row(l,lang,used)));
   $("outS").classList.toggle("hide",!lines.length);
   $("glS").classList.toggle("hide",!used.size);
   $("gl").innerHTML=[...used].map(([g,v])=>`<tr><td>${esc(v.orig)}</td><td>${esc(v.de)}</td><td>${esc(v.e)}</td></tr>`).join("");
 }
 
+const EXS=[
+"Row 1 (RS): k2, p2, yo, k2tog, sl1, k1, psso\nRow 2: k to last 3 sts, p3\nRnd 3: kfb, k3, ssk, rep from * to end",
+"Rang 1 (endroit): 2 m.e, 2 m.env, jeté, 2 m ens, répéter de * jusqu'à la fin\nRang 2: m.e jusqu'à 3 m de la fin, 3 m.env\nTour 3: monter 24 m, fermer en rond",
+"Rnd 1: ch 4, sl st to join, 8 dc in ring\nRnd 2: ch 1, 2 sc in each st around, sl st to first sc\nFasten off, weave in ends"];
+let ei=0;
 $("go").onclick=run;
 $("mode").onchange=run;
-$("ex").onclick=()=>{$("in").value="Row 1 (RS): k2, p2, yo, k2tog, sl1, k1, psso\nRnd 2: kfb, k3, ssk, rep to end\nRang 3: 2 m ens, jeté, m.e, m.env\nRnd 1: ch 4, sl st in first ch, 8 dc in ring";run()};
+$("ex").onclick=()=>{$("in").value=EXS[ei++%EXS.length];run()};
 $("cp").onclick=async e=>{
-  const t=[...$("out").children].map((li,i)=>(i+1)+". "+li.textContent).join("\n");
+  const t=[...$("out").children].map(li=>[...li.querySelectorAll(".lb,.st")].map(s=>s.textContent).join(" ")).join("\n");
   try{await navigator.clipboard.writeText(t);e.target.textContent="Kopiert"}catch{e.target.textContent="Nicht möglich"}
   setTimeout(()=>e.target.textContent="Kopieren",1500);
 };
 $("pr").onclick=()=>print();
+
+// ---- Fehler melden ----
+// Push aufs Handy: ntfy-App installieren und dieses Thema abonnieren (frei wählbar, möglichst unratbar)
+const NTFY="maschen-bugs-x7f3q9k2vw";
+const SLUG=location.hostname.endsWith(".github.io")?location.hostname.split(".")[0]+"/"+(location.pathname.split("/")[1]||location.hostname):"";
+function report(){
+  const out=[...$("out").children].map(li=>[...li.querySelectorAll(".lb,.st")].map(s=>s.textContent).join(" ")).join("\n");
+  return `Kommentar: ${$("rc").value.trim()||"-"}\n\nEingabe:\n${$("in").value.slice(0,1500)}\n\nAusgabe:\n${out.slice(0,1500)}\n\n${$("det").textContent} (Dropdown: ${$("mode").value})`;
+}
+$("rb").onclick=()=>{$("repS").classList.toggle("hide");$("ri").classList.toggle("hide",!SLUG)};
+$("rs").onclick=async e=>{
+  try{
+    const r=await fetch("https://ntfy.sh/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:NTFY,title:"Maschen-Uebersetzer: Fehlermeldung",tags:["warning"],message:report()})});
+    if(!r.ok)throw 0;
+    $("rst").textContent="Danke, gesendet!";e.target.disabled=true;
+  }catch{$("rst").textContent="Senden fehlgeschlagen. Bitte die GitHub-Variante nutzen."}
+};
+$("ri").onclick=()=>open(`https://github.com/${SLUG}/issues/new?title=${encodeURIComponent("Übersetzungsfehler")}&body=${encodeURIComponent(report())}`,"_blank");
 
 function size(){
   const v=id=>parseFloat($(id).value),f=(a,b,n)=>a>0&&b>0&&n>0?Math.round(n*b/a):null;
