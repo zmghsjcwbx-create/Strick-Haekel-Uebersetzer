@@ -39,12 +39,12 @@ button.sent{background:var(--sage);border-color:#8fc4a6;color:var(--sagd)}
 select{width:auto;border-radius:999px;padding:8px 14px}
 input[type=search]{flex:1;min-width:140px;width:auto;border-radius:999px}
 ol{margin:0;padding:0;list-style:none}
-ol li{display:grid;grid-template-columns:1.6em minmax(5.5em,8.5em) 1fr;gap:8px;padding:11px 4px;border-bottom:1px dashed #ecd7de;align-items:baseline;font-size:1.1rem;line-height:1.5}
+ol li{display:grid;grid-template-columns:1.6em fit-content(11em) 1fr;gap:8px;padding:11px 4px;border-bottom:1px dashed #ecd7de;align-items:baseline;font-size:1.1rem;line-height:1.5}
 ol li.nolb{grid-template-columns:1.6em 1fr}
 ol li:last-child{border:0}
 ol li.cur{background:#fff6f8;border-radius:12px;box-shadow:inset 4px 0 0 var(--acc)}
 input[type=checkbox]{accent-color:var(--acc);width:1.15em;height:1.15em}
-.lb{font-weight:800;background:var(--lav);color:var(--lavd);border-radius:999px;padding:1px 10px;font-size:.9rem;text-align:center}
+.lb{white-space:nowrap;justify-self:start;font-weight:800;background:var(--lav);color:var(--lavd);border-radius:999px;padding:1px 10px;font-size:.9rem;text-align:center}
 li.done .lb,li.done .st{opacity:.4;text-decoration:line-through}
 .unk{border-bottom:2px dotted #e08a3c}
 table{width:100%;border-collapse:collapse;font-size:.95rem}
@@ -57,6 +57,8 @@ label{font-size:.9rem;color:var(--mut);display:block;margin-bottom:3px}
 .hint{color:var(--mut);font-size:.9rem;margin:8px 0 0}
 .res{margin-top:12px;font-size:1.1rem}
 .hide{display:none}
+.ck{display:flex;gap:8px;align-items:center;margin-top:8px;color:var(--fg);font-size:1rem}
+.ck.hide{display:none}
 .big{width:56px;height:56px;font-size:1.8rem;padding:0;line-height:1}
 .cnt{text-align:center;min-width:120px}
 #cv{display:block;font:600 2.8rem/1 Fraunces,Georgia,serif;color:#7a2f4d}
@@ -72,6 +74,12 @@ section>details>summary h2{margin:0}
 footer{text-align:center;color:var(--mut);font-size:.85rem}
 @media(max-width:520px){h1{font-size:1.3rem}}
 @media print{body{background:#fff}.noprint,.row,button,.deco,footer{display:none!important}section{border:0;box-shadow:none}}
+.pk{background:#fff8fa;border:2px dashed #e9a9bf;border-radius:14px;padding:12px;margin-bottom:12px}
+.pk p{margin:0 0 8px;font-weight:700;color:#7a2f4d}
+.pkl{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.pkc{text-align:left;font-weight:400;border-radius:10px;background:#fff;color:var(--fg);border:1px solid var(--line);padding:7px 10px;font-size:.92rem}
+ol li.plain{display:block;font-size:.97rem;color:#6a5a66;padding:6px 4px;border-bottom:0}
+ol li.plain.hd{font:600 .95rem Fraunces,Georgia,serif;color:#7a2f4d;letter-spacing:.03em;padding-top:14px}
 </style>
 </head>
 <body>
@@ -92,7 +100,7 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
   <div class="row">
     <button id="go">Übersetzen</button>
     <button class="ghost" id="ex">Beispiel</button>
-    <button class="ghost" id="ph">📷 Foto</button><input type="file" id="pf" accept="image/*" class="hide">
+    <button class="ghost" id="ph">📷 Foto</button><button class="ghost" id="cl">Leeren</button><button class="ghost hide" id="un">↩ Rückgängig</button><input type="file" id="pf" accept="image/*" class="hide">
     <label style="margin:0 0 0 auto">Sprache:</label>
     <select id="mode">
       <option value="auto">Automatisch erkennen</option>
@@ -100,6 +108,7 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
       <option value="uk">Englisch (UK)</option>
       <option value="fr">Französisch</option>
     </select>
+    <select id="craft" aria-label="Stricken oder Häkeln"><option value="auto">Stricken/Häkeln: automatisch</option><option value="k">Stricken</option><option value="h">Häkeln</option></select>
   </div>
   <p class="hint" id="ocr"></p>
   <p class="hint" id="det">Die Sprache wird automatisch erkannt. Das Dropdown ist nur für Fälle, in denen die Erkennung danebenliegt.</p>
@@ -107,14 +116,16 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
 
 <section id="outS" class="hide">
   <h2>🪡 Deutsche Anleitung</h2>
+  <div id="pk" class="pk hide noprint"><p id="pkq"></p><div id="pkl" class="pkl"></div><div class="row"><button class="ghost hide" id="pka">Bis zum Ende</button><button class="ghost" id="pkr">Automatisch erkennen</button><button class="ghost" id="pkc">Schließen</button></div></div>
   <ol id="out"></ol>
   <p class="hint noprint">Haken setzen = Reihe erledigt. Gestrichelt unterstrichen = nicht erkannt.</p>
-  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button><button class="ghost" id="rk">Haken zurücksetzen</button><button class="ghost" id="rb">Fehler melden</button></div>
+  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button><button class="ghost" id="pkb">Anleitung festlegen</button><button class="ghost" id="rk">Haken zurücksetzen</button><button class="ghost" id="cl2">Leeren</button><button class="ghost" id="rb">Fehler melden</button></div>
   <div id="repS" class="hide noprint" style="margin-top:12px">
     <label>Was ist falsch oder was hättest du erwartet?</label>
     <textarea id="rc" style="min-height:70px;font-family:inherit"></textarea>
+    <label class="ck hide" id="rpl"><input type="checkbox" id="rph" checked><img id="rpi" alt="Foto" style="height:44px;border-radius:8px"> Foto mitsenden</label>
     <div class="row"><button id="rs">Senden</button><button class="ghost" id="ri">Als GitHub-Issue</button><span id="rst" class="hint"></span></div>
-    <p class="hint">Gesendet werden Eingabe, Ausgabe und dein Kommentar, keine persönlichen Daten.</p>
+    <p class="hint">Gesendet werden Eingabe, Ausgabe, dein Kommentar und, wenn angehakt, das Foto. Sonst keine persönlichen Daten.</p>
   </div>
 </section>
 
@@ -170,10 +181,12 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
 </main>
 
 <script>
-const NAME="Kerstin",VERSION="4.2",STAND="07.10.2026";
+const NAME="Kerstin",VERSION="4.5",STAND="07.10.2026";
 let lastUsed=new Map();
+let rng=null,rngN=0,UNITS=[];
 // [Muster, Deutsch (Text oder fn(m,lang)), Glossar-Name, Bedeutung, Tag: en|fr|us|uk|leer=alle]
 const HK={us:{sc:"fM",hdc:"hStb",dc:"Stb",tr:"DStb"},uk:{dc:"fM",htr:"hStb",tr:"Stb"}};
+const hk=(s,l)=>{s=s.toLowerCase();return({ch:"Lm",st:"M"})[s]||(HK[l]||HK.us)[s]||(s==="hdc"||s==="htr"?"hStb":s==="sc"?"fM":"M")};
 const V=[
 // ---- Stricken EN ----
 ["k(\\d*)tog tbl",m=>`${m[1]||2} M re verschränkt zusammenstr.`,"k2tog tbl","Rechts verschränkt zusammenstricken","en"],
@@ -186,7 +199,8 @@ const V=[
 ["ssk","1 M abheben, 1 M re, abgehobene M überziehen","ssk","Linksneigende Abnahme","en"],
 ["sk2p","1 M abheben, 2 M re zusammenstr., abgehobene M überziehen","sk2p","Linksneigende Doppelabnahme","en"],
 ["s2kp2?|cdd","2 M zusammen abheben, 1 M re, abgehobene M überziehen","s2kp / cdd","Mittige Doppelabnahme","en"],
-["sl ?(\\d*)",m=>`${m[1]||1} M abheben`,"sl","Masche abheben, ohne sie zu stricken","en"],
+["(?:sl|slip) ?(\\d*)",m=>`${m[1]||1} M abheben`,"sl","Masche abheben, ohne sie zu stricken","en"],
+["(?:sl|slip) st(?:itch)?","1 M abheben","sl st (stricken)","Masche abheben (beim Stricken)","en"],
 ["sl ?1,? ?k1,? ?psso","1 M abheben, 1 M re, abgehobene M überziehen","sl1, k1, psso","Linksneigende Abnahme: abgehobene Masche über die gestrickte ziehen","en"],
 ["sl ?1,? ?k2tog,? ?psso","1 M abheben, 2 M re zusammenstr., abgehobene M überziehen","sl1, k2tog, psso","Linksneigende Doppelabnahme","en"],
 ["p2sso","2 M überziehen","p2sso","Zwei abgehobene Maschen über die gestrickte ziehen","en"],
@@ -204,8 +218,8 @@ const V=[
 ["garter stitch|garter st|garter","kraus rechts","garter","Alle Reihen rechts","en"],
 ["rs|right side","Hinr.","rs","Rechte Seite (Hinreihe)","en"],
 ["ws|wrong side","Rückr.","ws","Linke Seite (Rückreihe)","en"],
-["rnds?|rounds?","Rd","rnd","Runde","en"],
-["rows?","R","row","Reihe","en"],
+["rnds?|rounds?",m=>/s$/i.test(m[0])?"Runden":"Runde","rnd","Runde","en"],
+["rows?",m=>/s$/i.test(m[0])?"Reihen":"Reihe","row","Reihe","en"],
 ["repeat|rep","wiederholen","rep","Wiederholen","en"],
 ["inc","zunehmen","inc","Zunahme","en"],
 ["dec","abnehmen","dec","Abnahme","en"],
@@ -237,7 +251,8 @@ const V=[
 ["in (?:the )?next (?:st|stitch)","in die nächste M","in next st","In die nächste Masche","en"],
 ["in (?:the )?next (?:ch|chain)","in die nächste Lm","in next ch","In die nächste Luftmasche","en"],
 ["in (?:the )?same (?:st|stitch)","in dieselbe M","in same st","In dieselbe Masche","en"],
-["in (?:the )?(?:first|1st) (?:st|stitch|ch)","in die erste M","in first st","In die erste Masche","en"],
+["(?:sl st|slip stitch|ss) (?:to|in|into) (?:the )?(?:first|1st) (sc|hdc|htr|dc|tr|ch|st)",(m,l)=>`1 Km in die erste ${hk(m[1],l)}`,"sl st to first sc","Kettmasche in die erste Masche (Rundenschluss)","en"],
+["(?:to|in|into) (?:the )?(?:first|1st) (sc|hdc|htr|dc|tr|ch|st)",(m,l)=>`in die erste ${hk(m[1],l)}`,"in first st","In die erste Masche","en"],
 ["(?:in|into) (?:the )?(?:ring|magic ring|magic circle)","in den Fadenring","in ring","In den Fadenring","en"],
 ["next (\\d+) (?:sts?|stitch(?:es)?)",m=>`die nächsten ${m[1]} M`,"next n sts","Die nächsten n Maschen","en"],
 ["next (?:st|stitch)","nächste M","next st","Nächste Masche","en"],
@@ -257,7 +272,7 @@ const V=[
 ["purlwise","wie zum Linksstricken","purlwise","Wie zum Linksstricken","en"],
 ["as follows","wie folgt","as follows","Wie folgt","en"],
 ["then","dann","then","Dann","en"],
-["join with (?:a )?(?:sl st|slip stitch)|(?:sl st|slip stitch) to join","mit 1 Km schließen","join with sl st","Mit Kettmasche zur Runde schließen","en"],
+["join with (?:a )?(?:sl st|slip stitch|ss)|(?:sl st|slip stitch|ss) to join","mit 1 Km schließen","join with sl st","Mit Kettmasche zur Runde schließen","en"],
 ["join","zur Runde schließen","join","Zur Runde schließen","en"],
 ["break yarn|cut yarn","Faden abschneiden","break yarn","Faden abschneiden","en"],
 ["weave in ends","Fäden vernähen","weave in ends","Fadenenden vernähen","en"],
@@ -272,11 +287,28 @@ const V=[
 ["(?:change|new) colou?r","Farbe wechseln","change color","Farbwechsel","en"],
 ["mc","Hauptfarbe","MC","Main Color","en"],
 ["cc\\d?","Kontrastfarbe","CC","Contrast Color","en"],
+["magic loop|adjustable ring|adjustable loop","Fadenring","magic loop","Magic Ring / Fadenring","en"],
+["miss","überspringen","miss","Masche(n) überspringen (UK)","en"],
+["(?:in|into) (?:the )?(\\d+)(?:st|nd|rd|th) (?:ch|chain) from hook",m=>`in die ${m[1]}. Lm von der Nadel`,"into 2nd ch from hook","In die n-te Luftmasche ab Nadel","en"],
+["(?:in|into) (?:the )?next (\\d+) (?:sts?|stitch(?:es)?)",m=>`in die nächsten ${m[1]} M`,"in next n sts","In die nächsten n Maschen","en"],
+["in (?:the )?back loops? only of (?:every|each) (?:st|stitch)","in jede M, nur ins hintere Maschenglied","in back loop only of every st","Nur ins hintere Maschenglied jeder Masche","en"],
+["col(?:ou?r)? ?(\\d+)",m=>`Farbe ${m[1]}`,"col 1","Farbe Nr. n","en"],
+["main colou?r","Hauptfarbe","main colour","Hauptfarbe","en"],
+["colou?rs?","Farbe","colour","Farbe","en"],
+["changing to","wechseln zu","changing to","Wechseln zu","en"],
+["(?:keep )?rs facing","mit der rechten Seite zu dir","RS facing","Rechte Seite zeigt zu dir","en"],
+["do not turn|don't turn","nicht wenden","do not turn","Nicht wenden","en"],
+["(?:leaving|leave) (?:the )?remaining (?:sts?|stitches) unworked","restliche M unbearbeitet lassen","leaving remaining sts unworked","Restliche Maschen nicht bearbeiten","en"],
+["\\(?not counted as (?:a )?(?:st|stitch)\\)?","(zählt nicht als M)","not counted as a st","Zählt nicht als Masche","en"],
+["(?:in )?a continuous spiral","in fortlaufender Spirale","continuous spiral","In Spiralrunden arbeiten (ohne Rundenschluss)","en"],
+["evenly","gleichmäßig verteilt","evenly","Gleichmäßig verteilt","en"],
+["centre|center","Mitte","centre","Mitte","en"],
+["and","und","and","und","en"],["or","oder","or","oder","en"],["with","mit","with","mit","en"],
 // ---- Häkeln EN ----
 ["(sc|hdc|htr|dc|tr)(\\d*)tog",(m,l)=>`${m[2]||2} ${(HK[l]||HK.us)[m[1].toLowerCase()]||"M"} zusammen abmaschen`,"sc2tog","Maschen zusammen abmaschen (Abnahme)","en"],
 ["ch ?(\\d+)",m=>m[1]+" Lm","ch 4","Luftmaschen (Zahl = Anzahl)","en"],
 ["ch","Lm","ch","Luftmasche","en"],
-["sl st|ss","Km","sl st","Kettmasche","en"],
+["sl st|slip stitch|slst|ss","Km","sl st","Kettmasche","en"],
 ["sc","fM","sc","Feste Masche","en"],
 ["hdc|htr","hStb","hdc / htr","Halbes Stäbchen","en"],
 ["dtr","DStb","dtr","Doppelstäbchen","uk"],
@@ -320,8 +352,8 @@ const V=[
 ["monter|montage","anschlagen","monter","Maschen anschlagen","fr"],
 ["point mousse","kraus rechts","point mousse","Alle Reihen rechts","fr"],
 ["jersey","glatt rechts","jersey","Rechts auf Hinreihe, links auf Rückreihe","fr"],
-["rangs?|rg","R","rang","Reihe","fr"],
-["tours?","Rd","tour","Runde","fr"],
+["rangs?|rg",m=>/s$/i.test(m[0])?"Reihen":"Reihe","rang","Reihe","fr"],
+["tours?",m=>/s$/i.test(m[0])?"Runden":"Runde","tour","Runde","fr"],
 ["aug\\.?","zunehmen","aug.","Zunahme","fr"],
 ["dim\\.?","abnehmen","dim.","Abnahme","fr"],
 ["glisser|gl","abheben","glisser","Masche abheben","fr"],
@@ -347,44 +379,51 @@ const V=[
 ["cercle magique|anneau magique","Fadenring","anneau magique","Magic Ring","fr"],
 ].map(([p,d,g,e,t])=>({re:new RegExp("(?:"+p.replace(/ (?!\?)/g,"\\s+")+")(?![\\p{L}\\d])","iuy"),d,g,e,t,len:p.length}))
  .sort((a,b)=>b.len-a.len);
+const KS=new Set(["k2tog tbl","p2tog tbl","k2tog","p2tog","k1tbl","p1tbl","tbl","ssk","sk2p","s2kp / cdd","sl","sl st (stricken)","psso","sl1, k1, psso","sl1, k2tog, psso","p2sso","kfb","m1l","m1r","m1","c4f","c4b","st st","garter","wyif","wyib","cn","k2","p2","k","p","knitwise","purlwise","n m ens (env.)","n m ens","sjs","sjd","m.e / end.","m.env / env.","point mousse","jersey","glisser"]);
+const HS=new Set(["sc2tog","ch 4","ch","sl st","sl st to first sc","sc","hdc / htr","dtr","dc","tr","mr","blo","flo","ch-sp","t-ch","in ring","ml 4","ml","mc","ms","mi-b","db","tb","b","anneau magique","magic loop","miss","into 2nd ch from hook","in back loop only of every st"]);
+V.forEach(e=>{e.c=KS.has(e.g)?"k":HS.has(e.g)?"h":""});
 
-const ok=(t,l)=>!t||t===l||(t==="en"&&l!=="fr");
+const ok=(e,l,c)=>(!e.t||e.t===l||(e.t==="en"&&l!=="fr"))&&(!e.c||e.c===c);
 const STOP=new Set("the and of to a an on at in le la les de du des et un une".split(" "));
 const cnt=(t,w)=>(t.match(new RegExp("(?<![\\p{L}\\d])(?:"+w+")(?![\\p{L}\\d])","giu"))||[]).length;
 const FRW="rangs?|tours?|m\\.?e|m\\.?end|m\\.?env|jeté|jt|ens|ensemble|rab|rabattre|monter|montage|mailles?|répéter|rép|endroit|envers|ml|ms|mi-b|bride|jusqu'à|jusqu'aux|jusqu'au|dans|chaque|suivantes?|fois|puis|fin|aug|dim|point mousse|jersey|surjet|tricoter|arrêter";
 const ENW="rows?|rnds?|rounds?|repeat|rep|each|next|to end|from|with|knit|purl|k\\d*|p\\d*|yo|sl|ch|sc|hdc|htr|dc|tr|inc|dec|sts?|stitch(?:es)?|together|until|across|even|cast|bind|off|turn|ssk";
-const UKW="htr|yrh|yrn|tension|colour|cast off",USW="hdc|sc|sc\\d*tog|bind off|gauge|color";
+const CRW="ch ?\\d*|sc\\d*|sc\\d*tog|hdc|htr|dc\\d*|dtr|sl st|slip stitch|magic ring|magic circle|fasten off|blo|flo|ch-?sp|in ring|ml|ms|mc|mi-b|bride|tb|db|anneau magique|cercle magique|crochet|hook";
+const KNW="k\\d*|p\\d*|k\\d*tog|p\\d*tog|ssk|sl ?\\d+|psso|stockinette|garter|cast on|bind off|m1[lr]?|kfb|tbl|wyif|wyib|cdd|sk2p|s2kp|m\\.? ?e|m\\.? ?env|jersey|point mousse|rabattre|monter|surjet|sjs|needles?|knit|purl|tricoter|aiguilles?";
+const UKW="htr|yrh|yrn|tension|colour|cast off|miss",USW="hdc|sc|sc\\d*tog|bind off|gauge|color";
 
 function detect(t){
-  const fr=cnt(t,FRW),en=cnt(t,ENW);
-  if(fr>en)return{lang:"fr"};
+  const fr=cnt(t,FRW),en=cnt(t,ENW),ch=cnt(t,CRW),kn=cnt(t,KNW),craft=ch>kn?"h":"k",cu=ch+kn===0;
+  if(fr>en)return{lang:"fr",craft,none:cu};
   const uk=cnt(t,UKW),us=cnt(t,USW);
-  return{lang:uk>us?"uk":"us",amb:uk===us&&cnt(t,"dc|tr|dtr")>0,none:fr+en===0};
+  return{lang:uk>us?"uk":"us",craft,amb:uk===us&&cnt(t,"dc|tr|dtr")>0,none:fr+en===0||cu};
 }
 
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const isW=c=>/[\p{L}\d]/u.test(c||"");
 
-function tr(text,lang,used){
+function tr(text,lang,used,cr,stt){
   let o="",i=0;
   while(i<text.length){
     const c=text[i];
     if(!isW(c)){o+=esc(c);i++;continue}
     let hit=null;
     for(const e of V){
-      if(!ok(e.t,lang))continue;
+      if(!ok(e,lang,cr))continue;
       e.re.lastIndex=i;
       const m=e.re.exec(text);
-      if(m){hit={e,m};break}
+      if(m&&(!hit||m[0].length>hit.m[0].length))hit={e,m};
     }
     if(hit){
       const de=typeof hit.e.d==="function"?hit.e.d(hit.m,lang):hit.e.d;
       o+=esc(de);
+      if(stt){const hw=(hit.m[0].match(/[\p{L}\d]+/gu)||[]).length;stt.w+=hw;stt.h+=hit.e.c?2*hw:(hw>1||/\d/.test(hit.m[0])?hw:.5)}
       if(!used.has(hit.e.g))used.set(hit.e.g,{orig:hit.m[0],de,e:hit.e.e});
       i+=hit.m[0].length;
     }else{
       const w=text.slice(i).match(/^[\p{L}\d]+/u)[0];
+      if(stt&&/^\p{L}{2,}$/u.test(w)&&!STOP.has(w.toLowerCase()))stt.w++;
       o+=/^\p{L}{2,}$/u.test(w)&&!STOP.has(w.toLowerCase())?`<span class="unk">${esc(w)}</span>`:esc(w);
       i+=w.length;
     }
@@ -393,22 +432,71 @@ function tr(text,lang,used){
 }
 
 const LAB=/^\s*(rows?|rnds?|rounds?|rangs?|rg|tours?)\.?\s*(\d+(?:\s*(?:[-–—,&]|to|à|et|and)\s*\d+)*)\s*(?:\(([^)]*)\))?\s*[:.\-–]\s*/i;
-function row(line,lang,used){
+function row(line,lang,used,cr){
   let lb="",rest=line;
   const m=line.match(LAB);
   if(m){
-    const typ=/^(rn|ro|tou)/i.test(m[1])&&!/^row/i.test(m[1])&&!/^rang/i.test(m[1])?"Rd":"R";
+    const typ=/^(rnd|round|tour)/i.test(m[1])?"Runde":"Reihe";
     const n=m[2].replace(/\s*(?:[-–—]|to|à)\s*/gi,"–").replace(/\s*(?:&|and|et)\s*/gi," + ").replace(/\s*,\s*/g,", ");
-    lb=/^\d+$/.test(n)?`${n}. ${typ}`:`${typ} ${n}`;
+    lb=/^\d+$/.test(n)?`${n}. ${typ}`:`${typ==="Runde"?"Runden":"Reihen"} ${n}`;
     if(m[3]){const s=m[3].trim();
       lb+=` (${/^(rs|right side|endroit|end\.?)$/i.test(s)?"Hinr.":/^(ws|wrong side|envers|env\.?)$/i.test(s)?"Rückr.":esc(s)})`}
     rest=line.slice(m[0].length);
   }
   const li=document.createElement("li");
   if(!lb)li.className="nolb";
-  li.innerHTML=`<input type="checkbox" aria-label="erledigt">${lb?`<span class="lb">${lb}</span>`:""}<span class="st">${tr(rest.trim(),lang,used)}</span>`;
+  li.innerHTML=`<input type="checkbox" aria-label="erledigt">${lb?`<span class="lb">${lb}</span>`:""}<span class="st">${tr(rest.trim(),lang,used,cr)}</span>`;
   li.firstChild.onchange=e=>{li.classList.toggle("done",e.target.checked);updCur();save()};
   return li;
+}
+
+const LABS=/^\s*(?:rows?|rnds?|rounds?|rangs?|rg|tours?)\.?\s*\d/i;
+const SPL=/(?<=^|[\s.)])(?:rows?|rnds?|rounds?|rangs?|rg|tours?)\.?\s*\d+(?:\s*(?:[-–—,&]|to|à|et|and)\s*\d+)*\s*(?:\([^)]*\))?\s*:/gi;
+const HEADZ=/^(pattern|patterns|instructions?|directions?|method|anleitung|explications?|r[ée]alisation)$/i;
+const STOPH=/^(designed by|about me|about the (?:designer|author)|abbreviations?|special abbreviations|materials?|notes?|measurements?|sizes?|what you(?:'ll)? need|you will need|tension|gauge|abkürzungen|materialien|fournitures|matériel)$/i;
+const norm=u=>u.replace(/[^\p{L}\s']/gu," ").replace(/\s+/g," ").trim();
+const isHead=(u,z)=>{const t=u.trim(),n=t.split(/\s+/).length;return n<=4&&t.length<=40&&t===t.toUpperCase()&&new RegExp("\\p{L}{"+(z?3:4)+"}","u").test(t)&&!/\d/.test(t)};
+function chunks(u){
+  const idx=[];let m;SPL.lastIndex=0;
+  while((m=SPL.exec(u)))idx.push(m.index);
+  if(!idx.length||idx[0]>0)idx.unshift(0);
+  return idx.map((a,i)=>u.slice(a,idx[i+1]).trim()).filter(Boolean);
+}
+function plain(u,hd){const li=document.createElement("li");li.className="plain"+(hd?" hd":"");li.innerHTML=`<span class="st">${esc(u)}</span>`;return li}
+function build(units,lang,cr,used,rg){
+  let kinds=[],zone=false,hasZ=false,unc=false;
+  units.forEach((u,i)=>{
+    if(rg){kinds.push(isHead(u,1)?"head":i>=rg[0]&&i<=rg[1]?"ins":"txt");return}
+    const n=norm(u);
+    if(HEADZ.test(n)){zone=hasZ=true;kinds.push("head");return}
+    if(zone&&STOPH.test(n)){zone=false;kinds.push("head");return}
+    kinds.push(zone?(isHead(u,1)?"head":"zin"):"?");
+  });
+  kinds=kinds.map((k,i)=>{
+    if(k!=="zin")return k;
+    const u=units[i],st={w:0,h:0};
+    if(LABS.test(u)||chunks(u).length>1)return"ins";
+    tr(u,lang,new Map(),cr,st);
+    return Math.min(1,st.h/Math.max(st.w,1))>=.2?"ins":"txt";
+  });
+  if(!rg&&!hasZ){
+    units.forEach((u,i)=>{
+      if(isHead(u,0)){kinds[i]="head";return}
+      const lab=LABS.test(u),st={w:0,h:0};
+      tr(u,lang,new Map(),cr,st);
+      const sc=Math.min(1,st.h/Math.max(st.w,1));
+      kinds[i]=lab||sc>=.35?"ins":"txt";
+      if(!lab&&sc>=.12&&sc<.35&&st.w>=4)unc=true;
+    });
+    if(units.length>=3&&!kinds.includes("ins"))unc=true;
+  }
+  const els=[];
+  units.forEach((u,i)=>{
+    const k=kinds[i];
+    if(k==="ins")chunks(u).forEach(c=>els.push(row(c,lang,used,cr)));
+    else els.push(plain(u,k==="head"));
+  });
+  return{els,unc};
 }
 
 function run(){
@@ -416,16 +504,18 @@ function run(){
   const sel=$("mode").value,d=detect(raw);
   const lang=sel==="auto"?d.lang:sel;
   const names={us:"Englisch (US)",uk:"Englisch (UK)",fr:"Französisch"};
-  $("det").textContent=!raw.trim()?"Die Sprache wird automatisch erkannt. Das Dropdown ist nur für Fälle, in denen die Erkennung danebenliegt."
-    :sel!=="auto"?`Manuell gewählt: ${names[lang]}`
-    :d.none?"Sprache nicht erkennbar – US angenommen. Bei Bedarf im Dropdown ändern."
-    :`Erkannt: ${names[lang]}`+(d.amb&&lang!=="fr"?" · dc/tr sind nicht eindeutig (US und UK unterscheiden sich), US angenommen. Bei Bedarf im Dropdown auf UK stellen.":"");
+  const cr=$("craft").value==="auto"?d.craft:$("craft").value,cn={k:"Stricken",h:"Häkeln"},manual=sel!=="auto"||$("craft").value!=="auto";
+  $("det").textContent=!raw.trim()?"Sprache und Stricken/Häkeln werden automatisch erkannt. Die Dropdowns sind nur für Fälle, in denen die Erkennung danebenliegt."
+    :`${manual?"Eingestellt":"Erkannt"}: ${names[lang]}, ${cn[cr]}`+(!manual&&d.none?" (unsicher, bitte prüfen)":"")+(!manual&&d.amb&&lang!=="fr"&&cr==="h"?" · dc/tr unterscheiden sich zwischen US und UK, US angenommen":"");
   resetRb();
   const used=new Map(),out=$("out");
   out.innerHTML="";
-  const lines=raw.split("\n").filter(l=>l.trim());
-  lines.forEach(l=>out.appendChild(row(l,lang,used)));
-  $("outS").classList.toggle("hide",!lines.length);
+  const units=raw.split("\n").map(l=>l.trim()).filter(Boolean);
+  UNITS=units;if(rng&&rngN!==units.length)rng=null;
+  const res=build(units,lang,cr,used,rng);
+  res.els.forEach(li=>out.appendChild(li));
+  $("outS").classList.toggle("hide",!units.length);
+  if(res.unc&&!rng&&units.length)openPk(true);else $("pk").classList.add("hide");
   updCur();save();lastUsed=used;renderGl();
 }
 
@@ -454,42 +544,192 @@ $("ver").textContent=`Version ${VERSION} · Stand ${STAND}`;
 // Push aufs Handy: ntfy-App installieren und dieses Thema abonnieren (frei wählbar, möglichst unratbar)
 const NTFY="maschen-bugs-x7f3q9k2vw";
 const SLUG=location.hostname.endsWith(".github.io")?location.hostname.split(".")[0]+"/"+(location.pathname.split("/")[1]||location.hostname):"";
-function report(){
-  const out=[...$("out").children].map(li=>[...li.querySelectorAll(".lb,.st")].map(s=>s.textContent).join(" ")).join("\n");
-  return `Kommentar: ${$("rc").value.trim()||"-"}\n\nEingabe:\n${$("in").value.slice(0,1500)}\n\nAusgabe:\n${out.slice(0,1500)}\n\n${$("det").textContent} (Dropdown: ${$("mode").value}) · v${VERSION}`;
+let photo=null,purl="";
+function photoUI(){
+  $("rpl").classList.toggle("hide",!photo);
+  if(photo){if(purl)URL.revokeObjectURL(purl);purl=URL.createObjectURL(photo);$("rpi").src=purl}
 }
-$("rb").onclick=()=>{$("repS").classList.toggle("hide");$("ri").classList.toggle("hide",!SLUG)};
+function report(extra,max=1500){
+  const out=[...$("out").children].map(li=>[...li.querySelectorAll(".lb,.st")].map(s=>s.textContent).join(" ")).join("\n");
+  return `Kommentar: ${$("rc").value.trim()||"-"}\n\nEingabe:\n${$("in").value.slice(0,max)}\n\nAusgabe:\n${out.slice(0,max)}\n\n${$("det").textContent} (Dropdown: ${$("mode").value}/${$("craft").value}) · v${VERSION}${extra?"\n"+extra:""}`;
+}
+const wantPhoto=()=>photo&&$("rph").checked;
+const newId=()=>Math.random().toString(36).slice(2,8).toUpperCase();
+async function pushPhoto(id){
+  const r=await fetch("https://ntfy.sh/"+NTFY,{method:"PUT",headers:{Filename:`foto-${id}.jpg`,Title:`Maschen-Uebersetzer: Foto zu Meldung ${id}`,Tags:"camera",Message:`Foto zu Meldung ${id}`},body:photo});
+  if(!r.ok)throw 0;
+  return ((await r.json()).attachment||{}).url||"";
+}
+$("rb").onclick=()=>{$("repS").classList.toggle("hide");$("ri").classList.toggle("hide",!SLUG);photoUI()};
 $("rs").onclick=async e=>{
+  const id=newId(),ph=wantPhoto(),btn=e.target;
+  btn.disabled=true;$("rst").textContent="Sende …";
   try{
-    const r=await fetch("https://ntfy.sh/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:NTFY,title:"Maschen-Uebersetzer: Fehlermeldung",tags:["warning"],message:report()})});
+    const r=await fetch("https://ntfy.sh/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:NTFY,title:`Maschen-Uebersetzer: Fehlermeldung ${id}`,tags:["warning"],message:report(`Meldung ${id}${ph?" · Foto folgt als eigene Nachricht":""}`)})});
     if(!r.ok)throw 0;
-    sent();
-  }catch{$("rst").textContent="Senden fehlgeschlagen. Bitte die GitHub-Variante nutzen."}
+  }catch{$("rst").textContent="Senden fehlgeschlagen. Bitte die GitHub-Variante nutzen.";btn.disabled=false;return}
+  let fail=false;
+  if(ph){try{await pushPhoto(id)}catch{fail=true}}
+  btn.disabled=false;sent();
+  if(fail)$("rb").textContent+=" (Foto ging nicht durch)";
 };
-$("ri").onclick=()=>{open(`https://github.com/${SLUG}/issues/new?title=${encodeURIComponent("Übersetzungsfehler")}&body=${encodeURIComponent(report())}`,"_blank");sent()};
+$("ri").onclick=async()=>{
+  const id=newId(),w=open("about:blank","_blank");
+  let note="";
+  if(wantPhoto()){
+    try{const u=await pushPhoto(id);note=u?`Foto (bei ntfy, nur wenige Stunden abrufbar): ${u}`:`Foto wurde per ntfy gesendet (Meldung ${id}).`}
+    catch{note="Das Foto konnte nicht übertragen werden."}
+  }
+  const url=`https://github.com/${SLUG}/issues/new?title=${encodeURIComponent("Übersetzungsfehler")}&body=${encodeURIComponent(report(`Meldung ${id}${note?"\n"+note:""}`,700))}`;
+  if(w)w.location.href=url;else location.assign(url);
+  sent();
+};
 
 // ---- Speichern, Zähler, Foto, Nadeln, App ----
 const KEY="maschen4";let zc=0;
 function save(){try{localStorage.setItem(KEY,JSON.stringify({t:$("in").value,c:zc,d:[...$("out").children].map(li=>+li.classList.contains("done"))}))}catch{}}
-function updCur(){const L=[...$("out").children];L.forEach(li=>li.classList.remove("cur"));const f=L.find(li=>!li.classList.contains("done"));if(f)f.classList.add("cur")}
+function updCur(){const L=[...$("out").children];L.forEach(li=>li.classList.remove("cur"));const f=L.find(li=>!li.classList.contains("done")&&!li.classList.contains("plain"));if(f)f.classList.add("cur")}
 function setC(n){zc=Math.max(0,n);$("cv").textContent=zc;save()}
 $("cplus").onclick=()=>setC(zc+1);$("cm").onclick=()=>setC(zc-1);$("cz").onclick=()=>setC(0);
 $("rk").onclick=()=>{[...$("out").children].forEach(li=>{li.classList.remove("done");li.firstChild.checked=false});updCur();save()};
-$("in").oninput=save;
+$("in").oninput=()=>{save();if($("in").value.trim())$("un").classList.add("hide")};
+function shrink(f){return new Promise(res=>{
+  const img=new Image(),u=URL.createObjectURL(f);
+  img.onload=()=>{const k=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement("canvas");
+    c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(u);c.toBlob(b=>res(b||f),"image/jpeg",.8)};
+  img.onerror=()=>{URL.revokeObjectURL(u);res(f)};img.src=u})}
+let snap=null;
+function clearAll(){
+  const t=$("in").value;if(!t&&!$("out").children.length)return;
+  snap={t,p:photo,r:[rng,rngN],d:[...$("out").children].map(li=>+li.classList.contains("done"))};photo=null;rng=null;
+  $("in").value="";run();$("un").classList.remove("hide");
+}
+$("cl").onclick=clearAll;$("cl2").onclick=clearAll;
+$("un").onclick=()=>{
+  if(!snap)return;
+  $("in").value=snap.t;photo=snap.p||null;[rng,rngN]=snap.r||[null,0];run();
+  snap.d.forEach((v,i)=>{const li=$("out").children[i];if(v&&li){li.classList.add("done");li.firstChild.checked=true}});
+  updCur();save();snap=null;$("un").classList.add("hide");
+};
 
 $("ph").onclick=()=>$("pf").click();
+const loadImg=f=>new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{URL.revokeObjectURL(u);ok(i)};i.onerror=no;i.src=u});
+// Textspalten über helle Zwischenräume finden (robust gegen große Fotos im Layout)
+function findStrips(g,W,H){
+  const y0=Math.floor(H*.3),y1=Math.floor(H*.95),bh=y1-y0,dens=new Float32Array(W);
+  for(let x=1;x<W;x++){let c=0;for(let y=y0;y<y1;y++)if(Math.abs(g[y*W+x]-g[y*W+x-1])>40)c++;dens[x]=c/bh}
+  const sm=new Float32Array(W);
+  for(let x=0;x<W;x++){let t=0,n=0;for(let k=-2;k<=2;k++){const xx=x+k;if(xx>=0&&xx<W){t+=dens[xx];n++}}sm[x]=t/n}
+  const minG=Math.max(5,Math.round(W*.005)),minS=Math.round(W*.05),out=[];let start=0,run=0;
+  for(let x=0;x<=W;x++){
+    if(x<W&&sm[x]<.015)run++;
+    else{if(run>=minG){if(x-run-start>=minS)out.push([start,x-run]);start=x}run=0}
+  }
+  if(W-start>=minS)out.push([start,W]);
+  return out.filter(([a,b])=>{let t=0;for(let x=a;x<b;x++)t+=sm[x];return t/(b-a)>.02});
+}
+// Ausschnitt vergrößern, Graustufen, Kontrast spreizen
+function prep(img,sx,sy,sw,sh,k){
+  const c=document.createElement("canvas");c.width=Math.round(sw*k);c.height=Math.round(sh*k);
+  const x=c.getContext("2d");x.imageSmoothingQuality="high";x.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+  const d=x.getImageData(0,0,c.width,c.height),p=d.data,h=new Uint32Array(256),n=c.width*c.height;
+  for(let i=0;i<p.length;i+=4){const v=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)|0;p[i]=v;h[v]++}
+  let lo=0,hi=255,a=0;for(;lo<255&&(a+=h[lo])<n*.01;lo++);a=0;for(;hi>0&&(a+=h[hi])<n*.01;hi--);
+  const f=255/Math.max(1,hi-lo);
+  for(let i=0;i<p.length;i+=4){const v=Math.max(0,Math.min(255,(p[i]-lo)*f));p[i]=p[i+1]=p[i+2]=v}
+  x.putImageData(d,0,0);
+  return new Promise(r=>c.toBlob(r,"image/png"));
+}
+async function ocrPage(f,say){
+  const img=await loadImg(f),W0=img.naturalWidth,H0=img.naturalHeight,k=Math.min(1,1200/W0),cw=Math.round(W0*k),ch=Math.round(H0*k);
+  const c=document.createElement("canvas");c.width=cw;c.height=ch;
+  const cx=c.getContext("2d");cx.drawImage(img,0,0,cw,ch);
+  const px=cx.getImageData(0,0,cw,ch).data,g=new Uint8Array(cw*ch);
+  for(let i=0;i<g.length;i++)g[i]=px[i*4]*.3+px[i*4+1]*.59+px[i*4+2]*.11;
+  const strips=findStrips(g,cw,ch),wk=await Tesseract.createWorker("eng+fra"),parts=[];
+  if(strips.length>=2){
+    await wk.setParameters({tessedit_pageseg_mode:"6"});
+    for(let i=0;i<strips.length;i++){
+      say(`Lese Spalte ${i+1} von ${strips.length} …`);
+      const [a,b]=strips[i],sx=a/k,sw=(b-a)/k,top=H0*.25;
+      parts.push((await wk.recognize(await prep(img,sx,top,sw,H0-top,Math.max(1,Math.min(8,1400/sw))))).data.text);
+    }
+  }else{
+    say("Lese Text …");
+    parts.push((await wk.recognize(await prep(img,0,0,W0,H0,Math.max(1,Math.min(2.5,2400/Math.max(W0,H0)))))).data.text);
+  }
+  await wk.terminate();
+  return parts;
+}
+const okLine=t=>{const L=(t.match(/\p{L}/gu)||[]).length;return L>=3&&L/t.length>=.55};
+// Umbrüche der Spalte zusammenführen, Überschriften/Aufzählungen/Reihen bleiben eigene Zeilen
+function unwrap(t){
+  const out=[];
+  for(const para of t.replace(/¢/g,"c").split(/\n\s*\n/)){
+    let cur="";const flush=()=>{const v=cur.trim();if(v&&okLine(v))out.push(v);cur=""};
+    for(let ln of para.split("\n")){
+      ln=ln.trim();if(!ln)continue;
+      if(!cur)cur=ln;
+      else if(/^[•›»·▪*+–—-]\s/.test(ln)||LABS.test(ln)||isHead(ln,1)||isHead(cur,1)){flush();cur=ln}
+      else if(/[A-Za-z]-$/.test(cur)&&/^[a-z]/.test(ln))cur=cur.slice(0,-1)+ln;
+      else cur+=" "+ln;
+    }
+    flush();out.push("");
+  }
+  return out;
+}
+const lev=(a,b)=>{const d=[...Array(a.length+1)].map((_,i)=>[i,...Array(b.length).fill(0)]);for(let j=1;j<=b.length;j++)d[0][j]=j;
+  for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]};
+// Typische Lesefehler der Texterkennung glätten
+function fixOcr(t){
+  t=t.replace(/\(\s*(\d{1,3})\s+(?!(?:cm|mm|in|yds?|m|g|oz|sts?|rows?|rnds?|ply|ch)\b)(?:[a-z]{1,3}|(?=[^\s)]*[^a-z\s)])[^\s)]{1,4})\s*\)/gi,"($1 sts)");
+  let last="Rnd";
+  t=t.replace(/\b([A-Za-z][a-z]{1,4})\s*([0-9§]{1,2}(?:\s*[-–]\s*[0-9§]{1,2})?)\s*:/g,(m,w,n)=>{
+    const lw=w.toLowerCase().replace(/s$/,"");let typ=null;
+    if(lw==="row")typ="Row";else if(lw==="rnd"||lw==="round")typ="Rnd";
+    else{const dR=lev(lw,"row"),dN=lev(lw,"rnd");if(Math.min(dR,dN)>2||!/^[ar]/.test(lw))return m;typ=dR<dN?"Row":dN<dR?"Rnd":last}
+    last=typ;n=n.replace(/§/g,"1");
+    return typ+(/[-–]/.test(n)?"s ":" ")+n+":";
+  });
+  return t.replace(/(\d)\s?(?:de|dC|DC|GC|oC|0C|OC)\b(?=\s+(?:in|into|to|every|each|next)\b)/g,"$1 dc");
+}
+
 $("pf").onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
   const o=$("ocr");o.textContent="Lade Texterkennung …";
+  shrink(f).then(b=>{photo=b});
   try{
     if(!window.Tesseract)await new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});
-    const r=await Tesseract.recognize(f,"eng+fra",{logger:m=>{if(m.status==="recognizing text")o.textContent=`Erkenne Text … ${Math.round(m.progress*100)} %`}});
-    $("in").value=r.data.text.replace(/\n{2,}/g,"\n").trim();
-    o.textContent="Text erkannt. Bitte kurz auf Erkennungsfehler prüfen. Das Foto bleibt auf deinem Gerät.";
+    const parts=await ocrPage(f,t=>o.textContent=t);
+    const txt=parts.map(p=>unwrap(p).join("\n")).join("\n\n").replace(/\n{3,}/g,"\n\n").trim();
+    $("in").value=fixOcr(txt);rng=null;
+    o.textContent="Text erkannt. Bitte im Eingabefeld kurz auf Lesefehler prüfen und mit „Übersetzen“ neu starten. Bei kleiner Schrift hilft ein schärferes Foto aus der Nähe. Das Foto bleibt auf deinem Gerät, außer du hängst es bewusst an eine Fehlermeldung.";
     run();$("outS").scrollIntoView({behavior:"smooth"});
   }catch{o.textContent="Texterkennung fehlgeschlagen. Bitte tippe den Text ab oder probiere ein schärferes Foto."}
   e.target.value="";
 };
+
+// Rückfrage: Wo beginnt die Anleitung?
+let pkStep=0,pkS=0;
+function openPk(auto){
+  pkStep=0;renderPk(auto);$("pk").classList.remove("hide");
+}
+function renderPk(auto){
+  $("pkq").textContent=pkStep?"Und wo endet sie? Tippe auf den letzten Absatz der Anleitung.":(auto?"Ich bin nicht sicher, wo die Anleitung beginnt. ":"")+"Tippe auf den ersten Absatz der Anleitung.";
+  const l=$("pkl");l.innerHTML="";
+  UNITS.forEach((u,i)=>{
+    if(pkStep&&i<pkS)return;
+    const b=document.createElement("button");b.className="pkc";b.textContent=u.length>110?u.slice(0,110)+"…":u;
+    b.onclick=()=>{if(!pkStep){pkS=i;pkStep=1;renderPk()}else{rng=[pkS,i];rngN=UNITS.length;$("pk").classList.add("hide");run()}};
+    l.appendChild(b);
+  });
+  $("pka").classList.toggle("hide",!pkStep);
+}
+$("pka").onclick=()=>{rng=[pkS,UNITS.length-1];rngN=UNITS.length;$("pk").classList.add("hide");run()};
+$("pkr").onclick=()=>{rng=null;$("pk").classList.add("hide");run()};
+$("pkc").onclick=()=>$("pk").classList.add("hide");
+$("pkb").onclick=()=>openPk(false);
 
 const NT=[[2,"0","14"],[2.25,"1","13"],[2.75,"2","12"],[3,"–","11"],[3.25,"3","10"],[3.5,"4","–"],[3.75,"5","9"],[4,"6","8"],[4.5,"7","7"],[5,"8","6"],[5.5,"9","5"],[6,"10","4"],[6.5,"10½","3"],[7,"–","2"],[7.5,"–","1"],[8,"11","0"],[9,"13","00"],[10,"15","000"]];
 const fm=n=>String(n).replace(".",",");
@@ -504,7 +744,7 @@ const ALL=(()=>{const seen=new Set(),o=[];
   for(const e of V){const k=e.g+"|"+(e.t||"");if(seen.has(k))continue;seen.add(k);
     let de=e.d;
     if(typeof de==="function"){e.re.lastIndex=0;const m=e.re.exec(e.g)||[e.g,"n","n","n"];de=e.d(m,e.t==="uk"?"uk":"us")}
-    o.push({orig:e.g,de,e:e.e,l:e.t==="fr"?"FR":e.t==="uk"?"UK":e.t==="us"?"US":"EN"})}
+    o.push({c:e.c,orig:e.g,de,e:e.e,l:e.t==="fr"?"FR":e.t==="uk"?"UK":e.t==="us"?"US":"EN"})}
   return o.sort((a,b)=>a.orig.localeCompare(b.orig,"de"))})();
 let gm="c",auto=false;
 function renderGl(){
@@ -512,7 +752,7 @@ function renderGl(){
   let rows=gm==="c"?[...lastUsed].map(([g,v])=>({orig:v.orig,de:v.de,e:v.e})):ALL.filter(r=>!lf||(lf==="FR")===(r.l==="FR"));
   if(q)rows=rows.filter(r=>(r.orig+" "+r.de+" "+r.e).toLowerCase().includes(q));
   if(gm==="c"&&q&&!rows.length){auto=true;setG("a");return}
-  $("gl").innerHTML=rows.map(r=>`<tr><td>${esc(r.orig)}${gm==="a"?` <small style="color:var(--mut)">${r.l}</small>`:""}</td><td>${esc(r.de)}</td><td>${esc(r.e)}</td></tr>`).join("");
+  $("gl").innerHTML=rows.map(r=>`<tr><td>${esc(r.orig)}${gm==="a"?` <small style="color:var(--mut)">${r.l}${r.c?" · "+(r.c==="h"?"Häkeln":"Stricken"):""}</small>`:""}</td><td>${esc(r.de)}</td><td>${esc(r.e)}</td></tr>`).join("");
   $("gn").textContent=gm==="c"&&!lastUsed.size?"Noch keine Übersetzung. Unter „Gesamtglossar“ findest du alle Begriffe.":rows.length?`${rows.length} Einträge${auto&&q?" · nicht in dieser Übersetzung, daher im Gesamtglossar gesucht":""}`:"Nichts gefunden.";
 }
 function setG(m){if(m==="c")auto=false;gm=m;$("gc").classList.toggle("on",m==="c");$("ga").classList.toggle("on",m==="a");$("gl2").classList.toggle("hide",m==="c");renderGl()}
