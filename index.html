@@ -13,7 +13,7 @@
 <style>
 :root{color-scheme:light;--fg:#3b3340;--mut:#85798a;--line:#f0dde3;--acc:#b0476a;--lav:#e6dcf5;--lavd:#5f4392;--sage:#d9ece1;--sagd:#2f6b4d;--peach:#fde8dc}
 *{box-sizing:border-box}
-body{margin:0;color:var(--fg);font:16px/1.6 Nunito,"Segoe UI",system-ui,sans-serif;background:linear-gradient(160deg,#fff1ee 0%,#f5eefb 55%,#e9f5ee 100%) fixed;min-height:100vh}
+body{margin:0;color:var(--fg);font:16px/1.6 Nunito,"Segoe UI",system-ui,sans-serif;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' opacity='.55'%3E%0A%3Cg transform='translate(28 30)' stroke='%23e8b3c5'%3E%3Ccircle cx='14' cy='14' r='13'/%3E%3Cpath d='M3 10c7 4 17 4 23-2M2 18c8 4 18 4 24-3M9 3c-2 8 0 17 6 23M17 2c-3 7-2 18 4 24'/%3E%3Cpath d='M24 24c4 3 7 1 9-3'/%3E%3C/g%3E%0A%3Cg transform='translate(165 22)' stroke='%23c9b8e8'%3E%3Cpath d='M3 29L29 3M29 29L3 3'/%3E%3Ccircle cx='29' cy='3' r='2.2'/%3E%3Ccircle cx='3' cy='3' r='2.2'/%3E%3C/g%3E%0A%3Cg transform='translate(110 118)' stroke='%23b5d8c3'%3E%3Cpath d='M0 0l5 9 5-9M12 0l5 9 5-9M24 0l5 9 5-9M6 11l5 9 5-9M18 11l5 9 5-9'/%3E%3C/g%3E%0A%3Cpath transform='translate(205 150)' stroke='%23f0bfc9' d='M10 18C-4 8 3-2 10 5 17-2 24 8 10 18z'/%3E%0A%3Cg transform='translate(34 160)' stroke='%23c9b8e8'%3E%3Cpath d='M3 28L24 5'/%3E%3Cpath d='M24 5c2-3 6-1 4 2'/%3E%3C/g%3E%0A%3Cg transform='translate(150 205)' stroke='%23e8b3c5'%3E%3Ccircle cx='9' cy='9' r='8'/%3E%3Cpath d='M2 7c4 3 10 3 14-1M2 12c4 3 10 3 14-1M6 2c-1 5 0 10 4 14'/%3E%3C/g%3E%0A%3Cg fill='%23e8b3c5' stroke='none'%3E%3Ccircle cx='95' cy='48' r='1.8'/%3E%3Ccircle cx='225' cy='95' r='1.8'/%3E%3Ccircle cx='70' cy='225' r='1.8'/%3E%3Ccircle cx='20' cy='110' r='1.8'/%3E%3C/g%3E%0A%3C/g%3E%3C/svg%3E") 0 0/260px 260px repeat,linear-gradient(160deg,#fff1ee 0%,#f5eefb 55%,#e9f5ee 100%);background-attachment:scroll,fixed;min-height:100vh}
 main{max-width:780px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column}
 header{order:-9;display:flex;gap:12px;align-items:center;justify-content:space-between}
 .hdr-art{display:flex;align-items:center;flex-shrink:0}
@@ -80,6 +80,17 @@ footer{text-align:center;color:var(--mut);font-size:.85rem}
 .pkc{text-align:left;font-weight:400;border-radius:10px;background:#fff;color:var(--fg);border:1px solid var(--line);padding:7px 10px;font-size:.92rem}
 ol li.plain{display:block;font-size:.97rem;color:#6a5a66;padding:6px 4px;border-bottom:0}
 ol li.plain.hd{font:600 .95rem Fraunces,Georgia,serif;color:#7a2f4d;letter-spacing:.03em;padding-top:14px}
+.opts label{margin:0;white-space:nowrap}
+.hint:empty{display:none}
+.faq h3{font:600 1rem Fraunces,Georgia,serif;color:#7a2f4d;margin:16px 0 4px}
+.faq h3:first-child{margin-top:0}
+.faq details{border-bottom:1px dashed #ecd7de;padding:8px 2px}
+.faq summary{font-weight:800;color:#5a3550;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--acc);font-weight:800}
+.faq details[open]>summary::after{content:"–"}
+.faq p,.faq ul{margin:6px 0;font-size:.97rem}
+.faq ul{padding-left:1.2em}
 </style>
 </head>
 <body>
@@ -96,12 +107,17 @@ ol li.plain.hd{font:600 .95rem Fraunces,Georgia,serif;color:#7a2f4d;letter-spaci
 
 <section class="noprint" id="inS">
   <h2>🧶 Anleitung einfügen</h2>
-  <textarea id="in" placeholder="Row 1 (RS): k2, p2, yo, k2tog, rep from * to end&#10;Rang 2: 2 m ens, jeté, m.e jusqu'à la fin"></textarea>
+  <textarea id="in" aria-label="Anleitung"></textarea>
   <div class="row">
     <button id="go">Übersetzen</button>
     <button class="ghost" id="ex">Beispiel</button>
-    <button class="ghost" id="ph">📷 Foto</button><button class="ghost" id="cl">Leeren</button><button class="ghost hide" id="un">↩ Rückgängig</button><input type="file" id="pf" accept="image/*" class="hide">
-    <label style="margin:0 0 0 auto">Sprache:</label>
+    <button class="ghost" id="ph">📷 Foto</button>
+    <button class="ghost" id="cl">Leeren</button>
+    <button class="ghost hide" id="un">↩ Rückgängig</button>
+    <input type="file" id="pf" accept="image/*" class="hide">
+  </div>
+  <div class="row opts">
+    <label for="mode">Sprache</label>
     <select id="mode">
       <option value="auto">Automatisch erkennen</option>
       <option value="us">Englisch (US)</option>
@@ -119,7 +135,7 @@ ol li.plain.hd{font:600 .95rem Fraunces,Georgia,serif;color:#7a2f4d;letter-spaci
   <div id="pk" class="pk hide noprint"><p id="pkq"></p><div id="pkl" class="pkl"></div><div class="row"><button class="ghost hide" id="pka">Bis zum Ende</button><button class="ghost" id="pkr">Automatisch erkennen</button><button class="ghost" id="pkc">Schließen</button></div></div>
   <ol id="out"></ol>
   <p class="hint noprint">Haken setzen = Reihe erledigt. Gestrichelt unterstrichen = nicht erkannt.</p>
-  <div class="row"><button class="ghost" id="cp">Kopieren</button><button class="ghost" id="pr">Drucken</button><button class="ghost" id="pkb">Anleitung festlegen</button><button class="ghost" id="rk">Haken zurücksetzen</button><button class="ghost" id="cl2">Leeren</button><button class="ghost" id="rb">Fehler melden</button></div>
+  <div class="row"><button class="ghost" id="pr">Drucken</button><button class="ghost" id="pkb">Anleitung festlegen</button><button class="ghost" id="rk">Haken zurücksetzen</button><button class="ghost" id="cl2">Leeren</button><button class="ghost" id="rb">Fehler melden</button></div>
   <div id="repS" class="hide noprint" style="margin-top:12px">
     <label>Was ist falsch oder was hättest du erwartet?</label>
     <textarea id="rc" style="min-height:70px;font-family:inherit"></textarea>
@@ -176,12 +192,72 @@ ol li.plain.hd{font:600 .95rem Fraunces,Georgia,serif;color:#7a2f4d;letter-spaci
   <textarea id="wc" style="min-height:90px;font-family:inherit" placeholder="Was soll die Seite noch können?"></textarea>
   <div class="row"><button id="ws">Wunsch senden</button><button class="ghost" id="wi">Als GitHub-Issue</button><span id="wst" class="hint"></span></div>
 </section>
+<section class="noprint" id="faqS" style="order:90">
+  <h2>❓ Hilfe &amp; FAQ</h2>
+  <div class="faq">
+    <h3>So geht’s in drei Schritten</h3>
+    <ul>
+      <li><b>1. Anleitung einfügen:</b> Kopiere den englischen oder französischen Text in das Feld oder tippe ihn ab. Du kannst auch ein Foto (📷) machen oder auswählen.</li>
+      <li><b>2. „Übersetzen“ antippen:</b> Die Seite erkennt selbst, ob die Anleitung englisch (US oder UK) oder französisch ist und ob sie zum Stricken oder Häkeln gehört. Das Ergebnis steht dann ganz oben.</li>
+      <li><b>3. Abarbeiten:</b> Setze bei jeder fertigen Reihe einen Haken. Die nächste offene Reihe ist hervorgehoben, und dein Stand bleibt gespeichert.</li>
+    </ul>
+
+    <h3>Eingabe</h3>
+    <details><summary>Wie schreibe ich meine Anleitung ins Feld?</summary>
+      <p>Eine Reihe pro Zeile: Drücke Enter, wenn eine neue Reihe beginnt. Reihennummern musst du nicht davor schreiben, die Seite nummeriert selbst („1. Reihe“, „2. Reihe“ …). Bei Anleitungen, die in Runden gearbeitet werden (z. B. mit Fadenring), steht „Runde“. Steht schon „Row 1:“, „Rnd 2:“ oder „Rang 3:“ davor, wird das übernommen. Der Knopf „Beispiel“ füllt das Feld mit einem Probetext.</p></details>
+    <details><summary>Wie funktioniert die Foto-Erkennung?</summary>
+      <p>Tippe auf „📷 Foto“ und wähle ein Bild. Die Seite liest den Text, trägt ihn ins Eingabefeld ein und übersetzt ihn. Beim ersten Mal wird die Texterkennung nachgeladen, dafür brauchst du Internet. Das kann einen Moment dauern.</p>
+      <p><b>Für gute Ergebnisse:</b> gutes Licht, gerade von oben fotografieren, nah herangehen und nur die Anleitung aufnehmen. Gedruckter Text klappt gut, mehrspaltige Zeitschriftenseiten meist auch. Handschrift und Strickschriften mit Symbolen werden nicht erkannt.</p>
+      <p><b>Wichtig:</b> Lies den erkannten Text im Feld kurz durch und korrigiere Lesefehler. Tippe danach noch einmal auf „Übersetzen“. Das Foto bleibt auf deinem Gerät.</p></details>
+    <details><summary>Was passiert mit Text, der keine Anleitung ist?</summary>
+      <p>Materiallisten, Hinweise und andere Texte bleiben unverändert stehen. Übersetzt werden nur die Anweisungen, die Reihen mit Haken erscheinen an der passenden Stelle. Den Beginn erkennt die Seite an Überschriften wie „Pattern“ oder „Anleitung“.</p>
+      <p>Ist sie unsicher, fragt sie nach: Tippe auf den Absatz, mit dem die Anleitung beginnt, und danach auf den, mit dem sie endet. Das geht auch jederzeit über „Anleitung festlegen“.</p></details>
+    <details><summary>Sprache oder „Stricken/Häkeln“ wurde falsch erkannt. Was tun?</summary>
+      <p>Unter den Knöpfen siehst du, was erkannt wurde, zum Beispiel „Englisch (UK), Häkeln“. Liegt die Seite falsch, wähle in den beiden Auswahlfeldern selbst aus. Wichtig bei Häkeln: Amerikanische und britische Begriffe unterscheiden sich. „dc“ ist im US-Englisch ein Stäbchen, im UK-Englisch eine feste Masche.</p></details>
+
+    <h3>Ergebnis</h3>
+    <details><summary>Was bedeuten die deutschen Kürzel?</summary>
+      <ul>
+        <li><b>re / li</b> = rechte / linke Masche · <b>M</b> = Masche · <b>U</b> = Umschlag</li>
+        <li><b>Lm</b> = Luftmasche · <b>Km</b> = Kettmasche · <b>fM</b> = feste Masche</li>
+        <li><b>hStb</b> = halbes Stäbchen · <b>Stb</b> = Stäbchen · <b>DStb</b> = Doppelstäbchen</li>
+        <li><b>Hinr. / Rückr.</b> = Hinreihe (rechte Seite) / Rückreihe (linke Seite)</li>
+      </ul>
+      <p>Alle Begriffe findest du außerdem im Glossar.</p></details>
+    <details><summary>Warum sind manche Wörter gestrichelt unterstrichen?</summary>
+      <p>Diese Wörter hat die Seite nicht erkannt und deshalb nicht übersetzt. Oft ist es normaler Fließtext oder ein Lesefehler bei einem Foto. Prüfe die Stelle und suche sie im Glossar.</p></details>
+    <details><summary>Wie zuverlässig ist die Übersetzung?</summary>
+      <p>Die Seite arbeitet mit einem Wörterbuch aus bekannten Abkürzungen und häufigen Wendungen, ohne künstliche Intelligenz. Das funktioniert bei Standardanleitungen gut. Bei ungewöhnlichen Formulierungen wirf bitte einen kurzen Blick darauf.</p></details>
+
+    <h3>Weitere Funktionen</h3>
+    <details><summary>Glossar: „Diese Übersetzung“ oder „Gesamtglossar“?</summary>
+      <p>„Diese Übersetzung“ zeigt nur die Begriffe, die in deiner Anleitung vorkamen. „Gesamtglossar“ zeigt alle Begriffe, die die Seite kennt, mit Suchfeld und Sprachfilter.</p></details>
+    <details><summary>Wofür ist der Reihenzähler?</summary>
+      <p>Mit + und − zählst du Reihen oder Runden mit, zum Beispiel bei langen Mustern. Der Stand bleibt gespeichert.</p></details>
+    <details><summary>Wie funktioniert die Größenumrechnung?</summary>
+      <p>Trage die Maschen und Reihen pro 10 cm aus der Anleitung ein, dann deine eigenen Werte aus deiner Maschenprobe. Gib danach die Maschen- oder Reihenzahl aus der Anleitung ein. Die Seite rechnet sie für dich um. Bei Mustersätzen runde bitte auf den nächsten Rapport.</p></details>
+    <details><summary>Nadelstärken umrechnen</summary>
+      <p>Wähle deine Nadelstärke in Millimeter, US oder UK. Die Seite zeigt dir die passenden Werte in den anderen Systemen. Die Tabelle gilt für Stricknadeln.</p></details>
+    <details><summary>Leeren, Rückgängig, Haken zurücksetzen, Drucken</summary>
+      <p><b>Leeren</b> löscht Eingabe und Ausgabe. Hast du das aus Versehen gedrückt, bringt „↩ Rückgängig“ alles zurück, solange du nichts Neues eingibst. <b>Haken zurücksetzen</b> entfernt nur die Häkchen. <b>Drucken</b> druckt die Anleitung ohne Knöpfe und Hintergrund.</p></details>
+    <details><summary>Bleibt mein Fortschritt gespeichert?</summary>
+      <p>Ja, aber nur in diesem Browser auf diesem Gerät. Auf anderen Geräten siehst du ihn nicht. Löschst du die Browserdaten, ist er weg.</p></details>
+    <details><summary>Kann ich die Seite wie eine App nutzen?</summary>
+      <p><b>iPhone:</b> in Safari auf „Teilen“ und dann „Zum Home-Bildschirm“ tippen. <b>Android:</b> im Chrome-Menü „App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen. Die Textübersetzung funktioniert danach meist auch ohne Internet. Foto-Erkennung und Meldungen brauchen eine Verbindung.</p></details>
+
+    <h3>Datenschutz &amp; Kontakt</h3>
+    <details><summary>Was kostet die Seite, und was passiert mit meinen Daten?</summary>
+      <p>Sie ist kostenlos und braucht keine Anmeldung. Deine Anleitungen, Fotos und Haken bleiben auf deinem Gerät. Nur wenn du „Fehler melden“ oder „Feature wünschen“ nutzt, werden die Angaben gesendet. Ein Foto geht nur mit, wenn du es angehakt lässt. Schriften und die Texterkennung werden aus dem Internet geladen.</p></details>
+    <details><summary>Etwas stimmt nicht oder ich wünsche mir etwas</summary>
+      <p>Unter der Ausgabe findest du „Fehler melden“. Beschreibe kurz, was falsch ist oder was du erwartet hättest. Eingabe und Ausgabe werden automatisch mitgeschickt. Neue Ideen schreibst du in die Box „Feature wünschen“.</p></details>
+  </div>
+</section>
 <div class="stitches deco" style="order:98"></div>
 <footer id="ver" style="order:99"></footer>
 </main>
 
 <script>
-const NAME="Kerstin",VERSION="4.5",STAND="07.10.2026";
+const NAME="Kerstin",VERSION="4.7",STAND="07.10.2026";
 let lastUsed=new Map();
 let rng=null,rngN=0,UNITS=[];
 // [Muster, Deutsch (Text oder fn(m,lang)), Glossar-Name, Bedeutung, Tag: en|fr|us|uk|leer=alle]
@@ -491,10 +567,18 @@ function build(units,lang,cr,used,rg){
     if(units.length>=3&&!kinds.includes("ins"))unc=true;
   }
   const els=[];
+  const NONROW=/^(?:cast on|bind off|cast off|fasten off|weave in|break yarn|cut yarn|block|finish|monter|rabattre|arr[êe]ter|rentrer|couper|co|bo|fo)\b/i;
+  const anyLab=units.some((u,i)=>kinds[i]==="ins"&&(LABS.test(u)||chunks(u).length>1));
+  const cand=units.map((u,i)=>kinds[i]==="ins"&&!NONROW.test(u));
+  const auto=!anyLab&&cand.filter(Boolean).length>=2;
+  const rd=/(\brnds?\b|\brounds?\b|magic (?:ring|loop|circle)|in (?:the )?ring|to join|\baround\b|\btours?\b|anneau magique|cercle magique|fermer en rond)/i.test(units.join(" "));
+  let n=0;
   units.forEach((u,i)=>{
     const k=kinds[i];
-    if(k==="ins")chunks(u).forEach(c=>els.push(row(c,lang,used,cr)));
-    else els.push(plain(u,k==="head"));
+    if(k==="ins"){
+      if(auto&&cand[i]){n++;els.push(row((rd?"Rnd ":"Row ")+n+": "+u,lang,used,cr))}
+      else chunks(u).forEach(c=>els.push(row(c,lang,used,cr)));
+    }else els.push(plain(u,k==="head"));
   });
   return{els,unc};
 }
@@ -522,16 +606,11 @@ function run(){
 const EXS=[
 "Row 1 (RS): k2, p2, yo, k2tog, sl1, k1, psso\nRow 2: k to last 3 sts, p3\nRnd 3: kfb, k3, ssk, rep from * to end",
 "Rang 1 (endroit): 2 m.e, 2 m.env, jeté, 2 m ens, répéter de * jusqu'à la fin\nRang 2: m.e jusqu'à 3 m de la fin, 3 m.env\nTour 3: monter 24 m, fermer en rond",
-"Rnd 1: ch 4, sl st to join, 8 dc in ring\nRnd 2: ch 1, 2 sc in each st around, sl st to first sc\nFasten off, weave in ends"];
+"ch 4, sl st to join, 8 dc in ring\nch 1, 2 sc in each st around, sl st to first sc\nFasten off, weave in ends"];
 let ei=0;
 $("go").onclick=()=>{run();$("outS").querySelector("details").open=true;$("outS").scrollIntoView({behavior:"smooth",block:"start"})};
-$("mode").onchange=run;
+$("mode").onchange=run;$("craft").onchange=run;
 $("ex").onclick=()=>{$("in").value=EXS[ei++%EXS.length];run()};
-$("cp").onclick=async e=>{
-  const t=[...$("out").children].map(li=>[...li.querySelectorAll(".lb,.st")].map(s=>s.textContent).join(" ")).join("\n");
-  try{await navigator.clipboard.writeText(t);e.target.textContent="Kopiert"}catch{e.target.textContent="Nicht möglich"}
-  setTimeout(()=>e.target.textContent="Kopieren",1500);
-};
 $("pr").onclick=()=>print();
 
 // ---- Fehler melden ----
@@ -649,11 +728,11 @@ async function ocrPage(f,say){
   for(let i=0;i<g.length;i++)g[i]=px[i*4]*.3+px[i*4+1]*.59+px[i*4+2]*.11;
   const strips=findStrips(g,cw,ch),wk=await Tesseract.createWorker("eng+fra"),parts=[];
   if(strips.length>=2){
-    await wk.setParameters({tessedit_pageseg_mode:"6"});
+    await wk.setParameters({tessedit_pageseg_mode:"4"});
     for(let i=0;i<strips.length;i++){
       say(`Lese Spalte ${i+1} von ${strips.length} …`);
       const [a,b]=strips[i],sx=a/k,sw=(b-a)/k,top=H0*.25;
-      parts.push((await wk.recognize(await prep(img,sx,top,sw,H0-top,Math.max(1,Math.min(8,1400/sw))))).data.text);
+      parts.push((await wk.recognize(await prep(img,sx,top,sw,H0-top,Math.max(1,Math.min(4,900/sw))))).data.text);
     }
   }else{
     say("Lese Text …");
